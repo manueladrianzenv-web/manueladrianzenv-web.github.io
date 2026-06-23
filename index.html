@@ -285,6 +285,7 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 <!-- MATCHES -->
 <div id="s-mx" class="sc"><div class="ct">
   <div style="padding-top:4px;margin-bottom:13px"><div style="font-size:23px;font-weight:900;color:var(--t1);letter-spacing:-.5px">Partidos</div><div style="font-size:11px;color:var(--t3);margin-top:2px">Copa del Mundo 2026 · Todos los resultados</div></div>
+  <div id="mx-goles-top"></div>
   <div class="rtabs" id="rtabs"></div>
   <div id="mx-list"></div>
 </div></div>
@@ -773,11 +774,11 @@ function standingsHtml(grp,teams,qualTop2,qualThirds){
 function renderMX(){
   const rp=[...new Set(G.m.map(m=>m.round))];
   const ord=RND_ORD.filter(r=>rp.includes(r));
-  if(curRnd!=='goleadores'&&!ord.includes(curRnd)&&ord.length)curRnd=ord[0];
-  document.getElementById('rtabs').innerHTML=
-    `<button class="rtab ${'goleadores'===curRnd?'on':''}" onclick="swRnd('goleadores')" style="${'goleadores'===curRnd?'color:#22c55e;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1)':'color:#22c55e;border-color:rgba(34,197,94,.25)'}">⚽ Goles</button>`+
-    ord.map(r=>`<button class="rtab ${r===curRnd?'on':''}" onclick="swRnd('${r}')">${RND_S[r]}</button>`).join('');
-  if(curRnd==='goleadores'){document.getElementById('mx-list').innerHTML=goleadoresHtml();return;}
+  if(curRnd==='goleadores'||!ord.includes(curRnd))curRnd=ord[0]||'grupos';
+  document.getElementById('rtabs').innerHTML=ord.map(r=>`<button class="rtab ${r===curRnd?'on':''}" onclick="swRnd('${r}')">${RND_S[r]}</button>`).join('');
+  // Goleadores always shown at top
+  const gDiv=document.getElementById('mx-goles-top');
+  if(gDiv)gDiv.innerHTML=goleadoresTopHtml();
   const ms=G.m.filter(m=>m.round===curRnd);
   if(!ms.length){document.getElementById('mx-list').innerHTML=`<div class="empty"><div class="ei">📅</div><p style="font-size:12px;color:var(--t3)">Sin partidos en esta fase</p></div>`;return;}
   const today=new Date().toISOString().slice(0,10);
@@ -825,6 +826,23 @@ function renderMX(){
 }
 function swRnd(r){curRnd=r;killT();renderMX();}
 // ─── GOLEADORES ───
+function goleadoresTopHtml(){
+  if(!G.goles||!G.goles.length)return '';
+  const sorted=[...G.goles].sort((a,b)=>b.goals-a.goals).slice(0,5);
+  const medals=['🥇','🥈','🥉'];
+  let rows=sorted.map((g,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;${i<sorted.length-1?'border-bottom:1px solid rgba(255,255,255,.05)':''}">
+    <span style="font-size:14px;min-width:20px;text-align:center">${medals[i]||''}</span>
+    <span style="font-size:18px">${g.flag}</span>
+    <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.name}</div><div style="font-size:9px;color:var(--t4)">${g.team}</div></div>
+    <div style="font-size:20px;font-weight:900;color:#22c55e;min-width:24px;text-align:right">${g.goals}</div>
+  </div>`).join('');
+  const editBtn=aOpen?`<button class="btn btn-g" style="width:100%;margin-top:8px;font-size:11px;padding:6px" onclick="openGolesModal()">✏️ Editar goleadores</button>`:'';
+  return `<div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:12px 14px;margin-bottom:13px">
+    <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#22c55e;margin-bottom:8px">⚽ GOLEADORES</div>
+    ${rows}${G.goles.length>5?`<div style="font-size:9px;color:var(--t4);text-align:center;margin-top:6px">+${G.goles.length-5} más</div>`:''}
+    ${editBtn}
+  </div>`;
+}
 function goleadoresHtml(){
   if(!G.goles||!G.goles.length)return '<div class="empty"><div class="ei">⚽</div><p style="font-size:12px;color:var(--t3)">Sin datos de goleadores aún</p></div>';
   const sorted=[...G.goles].sort((a,b)=>b.goals-a.goals||a.name.localeCompare(b.name));
