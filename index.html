@@ -2028,23 +2028,27 @@ function saveG(){
 }
 // Login functions
 function openLoginModal(){
-  const sel=document.getElementById('login-name');
-  sel.innerHTML='<option value="">— Elegí tu nombre —</option>'+
-    G.p.map(p=>`<option value="${p.id}">${p.emoji||''} ${p.name}</option>`).join('');
+  const dl=document.getElementById('login-users-list');
+  if(dl)dl.innerHTML=G.p.map(p=>`<option value="${p.name}">`).join('');
+  const inp=document.getElementById('login-name-txt');
+  if(inp)inp.value='';
   document.getElementById('login-pass').value='';
-  sel.onchange=function(){
-    const p=G.p.find(x=>x.id===this.value);
-    const hint=document.getElementById('login-hint');
-    if(hint)hint.textContent=p&&!p.pass?'Esta cuenta no tiene contraseña — dejá el campo vacío y clickeá Entrar':'';
-  };
+  const hint=document.getElementById('login-hint');
+  if(hint)hint.textContent='';
   openM('m-login');
 }
+function onLoginNameInput(){
+  const val=(document.getElementById('login-name-txt')||{}).value||'';
+  const p=G.p.find(x=>x.name.toLowerCase()===val.toLowerCase());
+  const hint=document.getElementById('login-hint');
+  if(hint)hint.textContent=p&&!p.pass?'Esta cuenta no tiene contraseña — dejá el campo vacío y presioná Entrar':'';
+}
 function doLogin(){
-  const pid=document.getElementById('login-name').value;
+  const nameVal=(document.getElementById('login-name-txt')||{}).value?.trim()||'';
   const pass=document.getElementById('login-pass').value;
-  if(!pid){showT('Elegí tu nombre','err');return;}
-  const p=G.p.find(x=>x.id===pid);
-  if(!p){showT('Usuario no encontrado','err');return;}
+  if(!nameVal){showT('Escribí tu nombre','err');return;}
+  const p=G.p.find(x=>x.name.toLowerCase()===nameVal.toLowerCase());
+  if(!p){showT('No encontramos ese nombre ❌','err');return;}
   if(p.pass){
     if(!pass){showT('Ingresá tu contraseña','err');return;}
     if(p.pass!==simpleHash(pass)){showT('Contraseña incorrecta ❌','err');return;}
@@ -2056,13 +2060,10 @@ function logAs(pid){
   const p=G.p.find(x=>x.id===pid);
   if(!p)return;
   if(p.pass){
-    const sel=document.getElementById('login-name');
-    sel.innerHTML='<option value="">— Elegí tu nombre —</option>'+
-      G.p.map(px=>`<option value="${px.id}"${px.id===pid?' selected':''}>${px.emoji||''} ${px.name}</option>`).join('');
-    document.getElementById('login-pass').value='';
-    openM('m-login');
+    openLoginModal();
+    setTimeout(()=>{const inp=document.getElementById('login-name-txt');if(inp)inp.value=p.name;onLoginNameInput();},50);
   }else{
-    me=p;saveMe();loadALForUser();checkDailyRefill();renderPR();showT('¡Hola de vuelta, '+p.name+'!');
+    me=p;saveMe();loadALForUser();checkDailyRefill();go('pr');showT('👋 ¡Hola de vuelta, '+p.name+'!');
   }
 }
 function renderFbAdmin(){
@@ -2157,10 +2158,9 @@ function saveFbConfig(){
   <div class="mh"></div>
   <div class="mtitle">🔐 Iniciar Sesión</div>
   <div style="font-size:11px;color:var(--t3);margin-bottom:16px">Ingresá tu usuario y contraseña</div>
-  <div class="fg"><label class="fl">Tu nombre</label>
-    <select class="fi" id="login-name" style="background:rgba(0,0,0,.04)">
-      <option value="">— Elegí tu nombre —</option>
-    </select>
+  <div class="fg"><label class="fl">Tu nombre o apodo</label>
+    <input class="fi" id="login-name-txt" list="login-users-list" placeholder="Escribí tu nombre..." autocomplete="off" oninput="onLoginNameInput()" onkeypress="if(event.key==='Enter')doLogin()">
+    <datalist id="login-users-list"></datalist>
   </div>
   <div class="fg"><label class="fl">Contraseña</label>
     <div style="position:relative"><input class="fi" id="login-pass" type="password" placeholder="Tu contraseña" onkeypress="if(event.key==='Enter')doLogin()" style="padding-right:44px"><button type="button" onclick="togglePwd('login-pass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--t3);padding:4px">👁</button></div>
