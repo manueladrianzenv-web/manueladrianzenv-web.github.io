@@ -374,12 +374,13 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 <!-- MODAL REG -->
 <div id="m-reg" class="ovl off"><div class="modal">
   <div class="mh"></div>
-  <div class="mtitle">👋 ¡Únete a la Polla!</div>
-  <div style="font-size:11px;color:var(--t3);margin-bottom:14px">Nombre real o pseudónimo — nadie tiene que saber quién sos 😏</div>
-  <div class="fg"><label class="fl">Tu nombre o apodo</label><input class="fi" id="reg-name" placeholder="Ej: El Crack, La Máquina, Pulga..."></div>
-  <div class="fg"><label class="fl">Contraseña</label><input class="fi" id="reg-pass" type="password" placeholder="Mínimo 4 caracteres"></div>
-  <div class="fg"><label class="fl">Elige tu avatar</label><div class="egrid" id="egrid"></div></div>
-  <div style="display:flex;gap:8px"><button class="btn btn-p" onclick="doReg()">¡Entrar!</button><button class="btn btn-g" style="flex:1" onclick="closeM('m-reg')">Cancelar</button></div>
+  <div class="mtitle">🏆 Unirse a la Polla</div>
+  <div style="font-size:11px;color:var(--t3);margin-bottom:16px;text-align:center">Creá tu cuenta para participar</div>
+  <div class="fg"><label class="fl">Tu nombre o apodo</label><input class="fi" id="reg-name" placeholder="Ej: El Crack, La Máquina, Pulga..." autocomplete="off"></div>
+  <div class="fg"><label class="fl">Contraseña <span style="color:var(--t4);font-weight:400">(mínimo 4 caracteres)</span></label><input class="fi" id="reg-pass" type="password" placeholder="Elegí una contraseña" autocomplete="new-password"></div>
+  <div class="fg"><label class="fl">Confirmar contraseña</label><input class="fi" id="reg-pass2" type="password" placeholder="Repetí tu contraseña" autocomplete="new-password" onkeypress="if(event.key==='Enter')doReg()"></div>
+  <div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:9px 12px;margin-bottom:14px;font-size:10px;color:var(--t3)">💡 Guardá bien tu contraseña. Si la olvidás, pedile al organizador que la resetee.</div>
+  <div style="display:flex;gap:8px"><button class="btn btn-p" style="flex:2" onclick="doReg()">¡Crear cuenta!</button><button class="btn btn-g" style="flex:1" onclick="closeM('m-reg')">Cancelar</button></div>
 </div></div>
 <!-- MODAL MATCH -->
 <div id="m-mx2" class="ovl off"><div class="modal">
@@ -774,8 +775,8 @@ function renderMX(){
   const ord=RND_ORD.filter(r=>rp.includes(r));
   if(curRnd!=='goleadores'&&!ord.includes(curRnd)&&ord.length)curRnd=ord[0];
   document.getElementById('rtabs').innerHTML=
-    ord.map(r=>`<button class="rtab ${r===curRnd?'on':''}" onclick="swRnd('${r}')">${RND_S[r]}</button>`).join('')+
-    `<button class="rtab ${'goleadores'===curRnd?'on':''}" onclick="swRnd('goleadores')" style="${'goleadores'===curRnd?'color:#22c55e;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1)':''}">⚽ Goles</button>`;
+    `<button class="rtab ${'goleadores'===curRnd?'on':''}" onclick="swRnd('goleadores')" style="${'goleadores'===curRnd?'color:#22c55e;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1)':'color:#22c55e;border-color:rgba(34,197,94,.25)'}">⚽ Goles</button>`+
+    ord.map(r=>`<button class="rtab ${r===curRnd?'on':''}" onclick="swRnd('${r}')">${RND_S[r]}</button>`).join('');
   if(curRnd==='goleadores'){document.getElementById('mx-list').innerHTML=goleadoresHtml();return;}
   const ms=G.m.filter(m=>m.round===curRnd);
   if(!ms.length){document.getElementById('mx-list').innerHTML=`<div class="empty"><div class="ei">📅</div><p style="font-size:12px;color:var(--t3)">Sin partidos en esta fase</p></div>`;return;}
@@ -1034,22 +1035,26 @@ function setPen(pid,mid,side){
   saveG();showT('✓ Penales guardado');
 }
 // ─── REGISTER ───
-function openReg(){selEmoji='⚽';document.getElementById('reg-name').value='';document.getElementById('egrid').innerHTML=EMOJIS.map(e=>`<div class="eopt ${e===selEmoji?'on':''}" onclick="selEm(this,'${encodeURIComponent(e)}')">${e}</div>`).join('');openM('m-reg');}
+function openReg(){document.getElementById('reg-name').value='';document.getElementById('reg-pass').value='';document.getElementById('reg-pass2').value='';openM('m-reg');}
 function selEm(el,ec){selEmoji=decodeURIComponent(ec);document.querySelectorAll('.eopt').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
 let _doRegBusy=false;
 function doReg(){
   if(_doRegBusy)return;
   const name=document.getElementById('reg-name').value.trim();
   const passRaw=(document.getElementById('reg-pass')||{}).value||'';
-  if(!name){showT('Ingresa tu nombre','err');return;}
-  if(passRaw.length>0&&passRaw.length<4){showT('Contraseña mínimo 4 caracteres','err');return;}
+  const passRaw2=(document.getElementById('reg-pass2')||{}).value||'';
+  if(!name){showT('Ingresá tu nombre o apodo','err');return;}
+  if(!passRaw){showT('Ingresá una contraseña','err');return;}
+  if(passRaw.length<4){showT('La contraseña debe tener mínimo 4 caracteres','err');return;}
+  if(passRaw!==passRaw2){showT('Las contraseñas no coinciden ❌','err');return;}
   const _existing=G.p.find(p=>p.name.toLowerCase()===name.toLowerCase());
   if(_existing){
     if(!_existing.pass){me=_existing;saveMe();closeM('m-reg');renderPR();showT('¡Bienvenido/a de vuelta, '+_existing.name+'! 👋');return;}
     showT('Ese nombre ya existe — ingresá tu contraseña','err');closeM('m-reg');setTimeout(openLoginModal,600);return;
   }
   _doRegBusy=true;
-  const p={id:Date.now().toString(),name,emoji:selEmoji};
+  const emoji=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+  const p={id:Date.now().toString(),name,emoji};
   if(passRaw)p.pass=simpleHash(passRaw);
   G.p.push(p);me=p;saveG();saveMe();
   setTimeout(()=>{_doRegBusy=false;},3000);
@@ -1126,7 +1131,7 @@ function _renderAdInner(){
   <div style="font-size:10px;color:var(--t3);margin-bottom:16px">Club del Odio · Copa del Mundo 2026</div>
   <div class="ph"><div class="phl">👥 Participantes (${G.p.length})</div><div class="phln"></div></div>
   <div style="font-size:10px;color:var(--t3);background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.1);border-radius:9px;padding:8px 12px;margin-bottom:9px">ℹ️ Los participantes se registran <strong style="color:#a78bfa">solos</strong> desde "Predecir".</div>
-  ${G.p.length?G.p.map((p,i)=>`<div class="adm-item"><div class="av a${i%10}" style="width:31px;height:31px;font-size:15px">${p.emoji||p.name[0]}</div><div style="flex:1;font-weight:700;color:var(--t1);font-size:12px">${p.name}</div><div style="font-size:12px;color:var(--p);font-weight:800">${totals(p.id).pts} pts</div><button class="btn btn-d btn-sm" onclick="rmP('${p.id}')">✕</button></div>`).join(''):`<div style="font-size:11px;color:var(--t4);padding:6px">Nadie aún</div>`}
+  ${G.p.length?G.p.map((p,i)=>`<div class="adm-item"><div class="av a${i%10}" style="width:31px;height:31px;font-size:15px">${p.emoji||p.name[0]}</div><div style="flex:1;font-weight:700;color:var(--t1);font-size:12px">${p.name}</div><div style="font-size:12px;color:var(--p);font-weight:800">${totals(p.id).pts} pts</div><button class="btn btn-g btn-sm" style="font-size:9px;padding:4px 7px" onclick="resetPassP('${p.id}')">🔑</button><button class="btn btn-d btn-sm" onclick="rmP('${p.id}')">✕</button></div>`).join(''):`<div style="font-size:11px;color:var(--t4);padding:6px">Nadie aún</div>`}
   <div class="div"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
     <div class="ph" style="margin:0;flex:1"><div class="phl">⚽ Partidos (${G.m.length})</div><div class="phln"></div></div>
@@ -1206,6 +1211,13 @@ function addMatch(){
   showT('✅ Partido agregado');
 }
 function rmP(id){if(!confirm('¿Eliminar participante?'))return;G.p=G.p.filter(p=>p.id!==id);delete G.preds[id];if(me?.id===id){me=null;saveMe();}saveG();renderAd();showT('✅ Eliminado');}
+function resetPassP(id){
+  const p=G.p.find(x=>x.id===id);if(!p)return;
+  const nueva=prompt('Nueva contraseña para '+p.name+' (mínimo 4 caracteres):');
+  if(!nueva)return;
+  if(nueva.length<4){showT('Contraseña muy corta','err');return;}
+  p.pass=simpleHash(nueva);saveG();showT('🔑 Contraseña de '+p.name+' reseteada ✅');
+}
 function rmM(id){if(!confirm('¿Eliminar partido?'))return;G.m=G.m.filter(m=>m.id!==id);Object.keys(G.preds).forEach(pid=>{delete G.preds[pid][id];});saveG();renderAd();showT('✅ Partido eliminado');}
 function resetAll(){if(!confirm('⚠️ ¿Borrar TODOS los datos?'))return;if(!confirm('🚨 Última confirmación'))return;G={p:[],m:[],preds:{},prizes:{p1:'',p2:'',p3:'',p4:''},goles:GOLES_INIT.map(g=>({...g}))};G.m=PRESET.map((m,i)=>({id:'p'+i,...m,rg1:null,rg2:null,pen:null,firstScorer:null,halfGoal:null}));me=null;localStorage.removeItem('cod26-me');saveG();renderAd();showT('🗑️ Datos borrados');}
 // MODALS
@@ -2131,6 +2143,7 @@ function saveFbConfig(){
     <button class="btn btn-p" style="flex:2" onclick="doLogin()">Entrar</button>
     <button class="btn btn-g" style="flex:1" onclick="closeM('m-login');openReg()">Registrarme</button>
   </div>
+  <div style="text-align:center;margin-top:12px;font-size:10px;color:var(--t4)">¿Olvidaste tu contraseña? Pedile al organizador que la resetee desde el panel admin 🔑</div>
 </div></div>
 </body>
 </html>
