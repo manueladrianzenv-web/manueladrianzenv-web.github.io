@@ -977,7 +977,7 @@ function renderPR(){
   </div>
   <div style="display:flex;gap:8px">
     <button class="btn btn-p" style="flex:1" onclick="openReg()">Crear cuenta</button>
-    <button class="btn btn-g" style="flex:1" onclick="openLoginModal()">🔐 Ingresar</button>
+    <button class="btn btn-p" style="flex:1;background:linear-gradient(135deg,#6d28d9,#7c3aed)" onclick="openLoginModal()">Iniciar sesión</button>
   </div>
 </div>`;
     if(G.p.length){h+=`<div style="text-align:center;font-size:10px;color:var(--t3);margin:10px 0 8px">— o elige tu perfil —</div>`;h+=G.p.map((p,i)=>`<button class="exbtn" onclick="logAs('${p.id}')"><div class="av a${i%10}" style="width:34px;height:34px">${p.emoji||p.name[0]}</div><div style="flex:1"><div style="font-weight:800;color:#fff;font-size:13px">${p.name}</div><div style="font-size:9px;color:var(--t3);margin-top:1px">${totals(p.id).pts} pts</div></div><div style="font-size:16px;color:var(--p)">→</div></button>`).join('');}
