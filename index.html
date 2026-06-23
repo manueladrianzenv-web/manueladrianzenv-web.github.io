@@ -593,6 +593,11 @@ const GOLES_INIT=[
   {name:'Jonathan David',team:'Canadá',flag:'🇨🇦',goals:3},
   {name:'Elijah Just',team:'EE.UU.',flag:'🇺🇸',goals:2},
   {name:'Harry Kane',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:2},
+  {name:'Viktor Gyökeres',team:'Suecia',flag:'🇸🇪',goals:2},
+  {name:'Lamine Yamal',team:'España',flag:'🇪🇸',goals:2},
+  {name:'Santiago Giménez',team:'México',flag:'🇲🇽',goals:2},
+  {name:'Vinicius Jr.',team:'Brasil',flag:'🇧🇷',goals:2},
+  {name:'Cristiano Ronaldo',team:'Portugal',flag:'🇵🇹',goals:1},
 ];
 function loadG(){
   try{const s=localStorage.getItem('cod26');if(s){G={...G,...JSON.parse(s)};if(!G.prizes)G.prizes={p1:'',p2:'',p3:'',p4:''};}}catch(e){}
@@ -1666,23 +1671,31 @@ function renderAlbumGrid(){
       const imgSrc=photoUrl||avatarUrl;
       const shortName=name.length>9?name.slice(0,9)+'…':name;
       if(has){
-        return `<div style="width:calc(20% - 4px);aspect-ratio:2/3;border-radius:8px;overflow:hidden;position:relative;background:${pg};${isStar?'box-shadow:0 0 0 2px #f59e0b,0 0 14px rgba(245,158,11,.6);':'box-shadow:0 3px 10px rgba(0,0,0,.5);'}" title="${name} · ${posLabel[pos]} · #${jerseyNum}${isStar?' ⭐':''}">
-          <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:22px">
-            <img src="${imgSrc}" style="width:90%;height:60%;object-fit:${photoUrl?'cover':'contain'};${photoUrl?'object-position:top;border-radius:4px;':''}" loading="lazy"
-              onerror="this.src='${avatarUrl}'">
+        const starBorder=isStar?'box-shadow:0 0 0 2.5px #f59e0b,0 0 18px rgba(245,158,11,.7),0 6px 20px rgba(0,0,0,.6);':'box-shadow:0 4px 14px rgba(0,0,0,.55);';
+        const topBand=`background:${pc};`;
+        return `<div style="width:calc(33.33% - 5px);aspect-ratio:2/3;border-radius:10px;overflow:hidden;position:relative;background:${pg};${starBorder}" title="${name} · ${posLabel[pos]} · #${jerseyNum}${isStar?' ⭐':''}">
+          <!-- Top band -->
+          <div style="position:absolute;top:0;left:0;right:0;height:7px;${topBand}${isStar?'background:linear-gradient(90deg,#d97706,#f59e0b,#d97706);':''}"></div>
+          <!-- Flag + number -->
+          <div style="position:absolute;top:9px;left:5px;right:5px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:14px">${flag}</span>
+            <span style="font-size:9px;font-weight:900;color:rgba(255,255,255,.7);background:rgba(0,0,0,.5);border-radius:4px;padding:1px 4px">#${jerseyNum}</span>
           </div>
-          ${isStar?'<div style="position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:10px">⭐</div>':''}
-          <div style="position:absolute;top:3px;left:3px;font-size:8px;font-weight:900;color:#fff;background:rgba(0,0,0,.65);border-radius:4px;padding:1px 4px;line-height:1.5">#${jerseyNum}</div>
-          <div style="position:absolute;top:3px;right:3px;font-size:11px">${flag}</div>
-          <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.78);padding:4px 3px">
-            <div style="font-size:8px;font-weight:900;color:${pc};text-align:center;letter-spacing:.5px">${posLabel[pos]}</div>
-            <div style="font-size:7.5px;font-weight:800;color:#fff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${shortName}</div>
+          ${isStar?'<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);font-size:11px;z-index:2">⭐</div>':''}
+          <!-- Photo -->
+          <div style="position:absolute;left:0;right:0;top:22px;bottom:30px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+            <img src="${imgSrc}" style="width:${photoUrl?'100%':'75%'};height:100%;object-fit:${photoUrl?'cover':'contain'};${photoUrl?'object-position:top center;':''}" loading="lazy" onerror="this.src='${avatarUrl}'">
+          </div>
+          <!-- Bottom info -->
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:3px 4px 4px;background:linear-gradient(0deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.6) 100%)">
+            <div style="font-size:7px;font-weight:900;color:${pc};letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:1px">${posLabel[pos]}</div>
+            <div style="font-size:9px;font-weight:900;color:#fff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.2px">${shortName}</div>
           </div>
         </div>`;
       } else {
-        return `<div style="width:calc(20% - 4px);aspect-ratio:2/3;border-radius:8px;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px">
-          <div style="font-size:16px;opacity:.35;color:#fff">?</div>
-          <div style="font-size:7px;color:rgba(255,255,255,.3);font-weight:700">#${jerseyNum}</div>
+        return `<div style="width:calc(33.33% - 5px);aspect-ratio:2/3;border-radius:10px;background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+          <div style="font-size:22px;opacity:.25">?</div>
+          <div style="font-size:8px;color:rgba(255,255,255,.25);font-weight:700">#${jerseyNum}</div>
         </div>`;
       }
     }).join('');
@@ -1699,7 +1712,7 @@ function renderAlbumGrid(){
           ${donutChart(col,26)}
         </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${slots}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${slots}</div>
     </div>`;
   }).join('');
 }
