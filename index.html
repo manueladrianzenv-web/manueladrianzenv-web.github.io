@@ -1081,8 +1081,8 @@ function doReg(){
   AL.lastPackDay=new Date().toISOString().slice(0,10);
   AL.packsToday=0;
   saveAL();
-  closeM('m-reg');renderPR();
-  showT('¡Bienvenido/a '+name+'! Tenés 20 sobres gratis para el álbum 🃏');
+  closeM('m-reg');go('pr');
+  showT('✅ ¡Cuenta creada exitosamente! Bienvenido/a, '+name+' 🎉');
 }
 function logAs(pid){const p=G.p.find(x=>x.id===pid);if(!p)return;me=p;saveMe();renderPR();showT('✅ ¡Hola de nuevo, '+p.name+'!');}
 function swUser(){me=null;saveMe();renderPR();}
@@ -2031,18 +2031,25 @@ function openLoginModal(){
   sel.innerHTML='<option value="">— Elegí tu nombre —</option>'+
     G.p.map(p=>`<option value="${p.id}">${p.emoji||''} ${p.name}</option>`).join('');
   document.getElementById('login-pass').value='';
+  sel.onchange=function(){
+    const p=G.p.find(x=>x.id===this.value);
+    const hint=document.getElementById('login-hint');
+    if(hint)hint.textContent=p&&!p.pass?'Esta cuenta no tiene contraseña — dejá el campo vacío y clickeá Entrar':'';
+  };
   openM('m-login');
 }
 function doLogin(){
   const pid=document.getElementById('login-name').value;
   const pass=document.getElementById('login-pass').value;
   if(!pid){showT('Elegí tu nombre','err');return;}
-  if(!pass){showT('Ingresá tu contraseña','err');return;}
   const p=G.p.find(x=>x.id===pid);
   if(!p){showT('Usuario no encontrado','err');return;}
-  if(p.pass&&p.pass!==simpleHash(pass)){showT('Contraseña incorrecta ❌','err');return;}
-  me=p;saveMe();loadALForUser();checkDailyRefill();closeM('m-login');renderPR();
-  showT('¡Bienvenido/a de vuelta, '+p.name+'! 👋');
+  if(p.pass){
+    if(!pass){showT('Ingresá tu contraseña','err');return;}
+    if(p.pass!==simpleHash(pass)){showT('Contraseña incorrecta ❌','err');return;}
+  }
+  me=p;saveMe();loadALForUser();checkDailyRefill();closeM('m-login');go('pr');
+  showT('👋 ¡Bienvenido/a de vuelta, '+p.name+'!');
 }
 function logAs(pid){
   const p=G.p.find(x=>x.id===pid);
@@ -2155,8 +2162,9 @@ function saveFbConfig(){
     </select>
   </div>
   <div class="fg"><label class="fl">Contraseña</label>
-    <input class="fi" id="login-pass" type="password" placeholder="Tu contraseña">
+    <input class="fi" id="login-pass" type="password" placeholder="Tu contraseña" onkeypress="if(event.key==='Enter')doLogin()">
   </div>
+  <div id="login-hint" style="font-size:10px;color:#22c55e;margin-bottom:8px;min-height:14px"></div>
   <div style="display:flex;gap:8px;margin-top:4px">
     <button class="btn btn-p" style="flex:2" onclick="doLogin()">Entrar</button>
     <button class="btn btn-g" style="flex:1" onclick="closeM('m-login');openReg()">Registrarme</button>
