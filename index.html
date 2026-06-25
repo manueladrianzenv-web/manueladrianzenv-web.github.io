@@ -1473,6 +1473,21 @@ function _renderAdInner(){
   <div class="div"></div>
   ${renderFbAdmin()}
   <div class="div"></div>
+  <div class="ph"><div class="phl">🔄 Sincronización Automática</div><div class="phln"></div></div>
+  <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:12px;margin-bottom:12px">
+    <div style="font-size:10px;color:var(--t3);margin-bottom:8px">Resultados y goleadores se actualizan automáticamente desde <strong style="color:#a78bfa">api-football.com</strong> (RapidAPI). Ponés tu API key una vez y queda activa.<br><span style="color:#6ee7b7">• Cada 3 min durante partidos en vivo · cada 30 min en silencio</span><br><span style="color:#6ee7b7">• Goleadores: 1 vez al día</span></div>
+    <div style="font-size:9px;color:var(--t3);margin-bottom:4px;font-weight:800;text-transform:uppercase;letter-spacing:1px">API Key (x-rapidapi-key)</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <input type="password" id="api-key-inp" value="${getApiKey()}" placeholder="Pegá tu clave de RapidAPI aquí…"
+        style="flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 10px;font-size:11px;color:#fff;outline:none">
+      <button class="btn btn-s btn-sm" onclick="setApiKey(document.getElementById('api-key-inp').value)" style="flex-shrink:0">Guardar</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div id="sync-status" style="font-size:10px;color:var(--t3)">${getApiKey()?'Key configurada — esperando primer sync':'Sin key configurada'}</div>
+      <button class="btn btn-g btn-sm" onclick="autoSync(true)" style="color:#22c55e;border-color:rgba(34,197,94,.25)">⟳ Sync ahora</button>
+    </div>
+  </div>
+  <div class="div"></div>
   <div style="font-size:8.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#ef4444;margin-bottom:9px">⚠️ ZONA DE PELIGRO</div>
   <button class="btn btn-d" style="width:100%;margin-bottom:7px" onclick="resetAll()">🗑️ Borrar todos los datos</button>
   <button class="btn btn-g" style="width:100%" onclick="aOpen=false;rdrLocked()">🔒 Cerrar sesión admin</button>
@@ -2668,6 +2683,101 @@ function saveFbConfig(){
     else{showT('Error al conectar Firebase','err');}
   }catch(e){showT('Config inválido: '+e.message,'err');}
 }
+// ── AUTO-SYNC: api-football.com (RapidAPI) ────────────────────────────────
+// Admin sets the key once; any device with the key polls and pushes to Firebase.
+const TEAM_EN_ES={
+  'Mexico':'México','Spain':'España','Germany':'Alemania','France':'Francia',
+  'Netherlands':'Países Bajos','Belgium':'Bélgica','Croatia':'Croacia',
+  'Morocco':'Marruecos','Japan':'Japón','South Korea':'Corea del Sur',
+  'Korea Republic':'Corea del Sur','Brazil':'Brasil','Argentina':'Argentina',
+  'Colombia':'Colombia','Uruguay':'Uruguay','United States':'USA','USA':'USA',
+  'Saudi Arabia':'Arabia Saudita','Switzerland':'Suiza','Portugal':'Portugal',
+  'England':'Inglaterra','Sweden':'Suecia','Norway':'Noruega',
+  'South Africa':'Sudáfrica','Iran':'Irán','New Zealand':'Nueva Zelanda',
+  'Canada':'Canadá','Ecuador':'Ecuador','Australia':'Australia',
+  'Turkey':'Turquía','Bosnia':'Bosnia-Herz.','Bosnia and Herzegovina':'Bosnia-Herz.',
+  'Qatar':'Qatar','Egypt':'Egipto','Iraq':'Irak','Algeria':'Argelia',
+  'Ivory Coast':'Costa de Marfil',"Cote D'Ivoire":'Costa de Marfil',
+  "Côte d'Ivoire":'Costa de Marfil','Czech Republic':'Chequia','Czechia':'Chequia',
+  'Austria':'Austria','Paraguay':'Paraguay','Haiti':'Haití','Scotland':'Escocia',
+  'Tunisia':'Túnez','Uzbekistan':'Uzbekistán','Jordan':'Jordania',
+  'DR Congo':'R.D. Congo','Congo DR':'R.D. Congo','Democratic Republic of Congo':'R.D. Congo',
+  'Cape Verde':'Cabo Verde','Curacao':'Curazao','Curaçao':'Curazao',
+  'Senegal':'Senegal','Ghana':'Ghana','Cameroon':'Camerún',
+  'Romania':'Rumania','Serbia':'Serbia',
+};
+function toEs(n){return TEAM_EN_ES[n]||n;}
+function getApiKey(){return localStorage.getItem('cod26-apikey')||'';}
+function setApiKey(k){localStorage.setItem('cod26-apikey',k.trim());showT('🔑 API key guardada ✅');renderAd();}
+
+let _syncing=false,_lastFixSync=0,_lastGolSync=0;
+async function autoSync(force=false){
+  const key=getApiKey();
+  if(!key||_syncing)return;
+  const now=Date.now();
+  // Live window: within 3h of any match kickoff
+  const live=G.m.some(m=>m.date&&now>=new Date(m.date).getTime()-60000&&now<=new Date(m.date).getTime()+10800000);
+  const cooldown=live?180000:1800000; // 3 min live, 30 min quiet
+  if(!force&&now-_lastFixSync<cooldown)return;
+  _syncing=true;
+  const st=document.getElementById('sync-status');
+  if(st)st.innerHTML='<span style="color:#f59e0b">⏳ Sincronizando...</span>';
+  try{
+    // ── 1. Match results ──────────────────────────────────────────────────
+    const res=await fetch('https://api-football-v1.p.rapidapi.com/v3/fixtures?league=1&season=2026',{
+      headers:{'x-rapidapi-key':key,'x-rapidapi-host':'api-football-v1.p.rapidapi.com'}
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const json=await res.json();
+    if(json.errors&&typeof json.errors==='object'&&Object.keys(json.errors).length)
+      throw new Error(Object.values(json.errors).join(', '));
+    let changed=0;
+    (json.response||[]).forEach(f=>{
+      if(!['FT','AET','PEN'].includes(f.fixture.status.short))return;
+      const ht=toEs(f.teams.home.name),at=toEs(f.teams.away.name);
+      const gh=f.goals.home,ga=f.goals.away;
+      if(gh===null||ga===null)return;
+      const m=G.m.find(x=>(x.t1===ht&&x.t2===at)||(x.t1===at&&x.t2===ht));
+      if(!m)return;
+      const r1=m.t1===ht?gh:ga,r2=m.t1===ht?ga:gh;
+      if(m.rg1!==r1||m.rg2!==r2){m.rg1=r1;m.rg2=r2;changed++;}
+    });
+    if(changed){saveG();renderMX();renderPRBody(me?.id);showT(`✅ ${changed} resultado${changed>1?'s':''} actualizados`);}
+    _lastFixSync=now;
+    // ── 2. Top scorers (once per 23h) ────────────────────────────────────
+    if(now-_lastGolSync>82800000){
+      const sr=await fetch('https://api-football-v1.p.rapidapi.com/v3/players/topscorers?league=1&season=2026',{
+        headers:{'x-rapidapi-key':key,'x-rapidapi-host':'api-football-v1.p.rapidapi.com'}
+      });
+      if(sr.ok){
+        const sj=await sr.json();
+        const sc=(sj?.response||[]).filter(s=>(s.statistics[0]?.goals?.total||0)>0);
+        if(sc.length){
+          G.goles=sc.slice(0,25).map(s=>{
+            const team=toEs(s.statistics[0]?.team?.name||'');
+            return{name:s.player.name,team,flag:SQUADS[team]?.[0]||'🏳️',goals:s.statistics[0].goals.total};
+          });
+          saveG();renderMX();showT('⚽ Goleadores actualizados');
+        }
+        _lastGolSync=now;
+      }
+    }
+    if(st){
+      const t=new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+      st.innerHTML=`<span style="color:#22c55e">✅ ${t}</span>${changed?` · <span style="color:#f59e0b">${changed} resultados</span>`:''}`;
+    }
+  }catch(e){
+    console.error('autoSync:',e);
+    if(st)st.innerHTML=`<span style="color:#f87171">❌ ${e.message.slice(0,60)}</span>`;
+  }finally{_syncing=false;}
+}
+let _syncIv=null;
+function startAutoSync(){
+  if(_syncIv)clearInterval(_syncIv);
+  autoSync();
+  _syncIv=setInterval(()=>autoSync(),180000); // every 3 min; autoSync skips if cooldown not met
+}
+
 // Auto-init Firebase
 (function(){
   const HARDCODED_FB={
@@ -2681,7 +2791,9 @@ function saveFbConfig(){
   };
   setTimeout(()=>{
     try{initFirebase(HARDCODED_FB);}catch(e){console.warn('Firebase failed:',e);}
-  },500);
+    // Start auto-sync after Firebase is up (only does anything if API key is set)
+    startAutoSync();
+  },700);
 })();
 </script>
 <!-- YAPE MODAL -->
