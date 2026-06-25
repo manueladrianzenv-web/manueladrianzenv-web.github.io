@@ -244,7 +244,10 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
       <div class="htitle">POLLA MUNDIAL <b>2026</b></div>
     </div>
   </div>
-  <div class="live"><div class="ldot"></div>EN VIVO</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="live"><div class="ldot"></div>EN VIVO</div>
+    <div id="hdr-join"></div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 <nav class="nav">
@@ -376,12 +379,22 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 <div id="m-reg" class="ovl off"><div class="modal">
   <div class="mh"></div>
   <div class="mtitle">🏆 Unirse a la Polla</div>
-  <div style="font-size:11px;color:var(--t3);margin-bottom:16px;text-align:center">Creá tu cuenta para participar</div>
-  <div class="fg"><label class="fl">Tu nombre o apodo</label><input class="fi" id="reg-name" placeholder="Ej: El Crack, La Máquina, Pulga..." autocomplete="off"></div>
-  <div class="fg"><label class="fl">Contraseña <span style="color:var(--t4);font-weight:400">(mínimo 4 caracteres)</span></label><div style="position:relative"><input class="fi" id="reg-pass" type="password" placeholder="Elegí una contraseña" autocomplete="new-password" style="padding-right:44px"><button type="button" onclick="togglePwd('reg-pass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--t3);padding:4px">👁</button></div></div>
-  <div class="fg"><label class="fl">Confirmar contraseña</label><div style="position:relative"><input class="fi" id="reg-pass2" type="password" placeholder="Repetí tu contraseña" autocomplete="new-password" onkeypress="if(event.key==='Enter')doReg()" style="padding-right:44px"><button type="button" onclick="togglePwd('reg-pass2',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--t3);padding:4px">👁</button></div></div>
-  <div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:9px 12px;margin-bottom:14px;font-size:10px;color:var(--t3)">💡 Guardá bien tu contraseña. Si la olvidás, pedile al organizador que la resetee.</div>
-  <div style="display:flex;gap:8px"><button class="btn btn-p" style="flex:1" onclick="doReg()">¡Crear cuenta!</button><button class="btn btn-p" style="flex:1;background:linear-gradient(135deg,#6d28d9,#7c3aed)" onclick="closeM('m-reg');openLoginModal()">Iniciar sesión</button></div>
+  <div id="reg-form">
+    <div style="font-size:11px;color:var(--t3);margin-bottom:16px;text-align:center">Creá tu cuenta para participar</div>
+    <div class="fg"><label class="fl">Tu nombre o apodo</label><input class="fi" id="reg-name" placeholder="Ej: El Crack, La Máquina, Pulga..." autocomplete="off"></div>
+    <div class="fg"><label class="fl">Contraseña <span style="color:var(--t4);font-weight:400">(mínimo 4 caracteres)</span></label><div style="position:relative"><input class="fi" id="reg-pass" type="password" placeholder="Elegí una contraseña" autocomplete="new-password" style="padding-right:44px"><button type="button" onclick="togglePwd('reg-pass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--t3);padding:4px">👁</button></div></div>
+    <div class="fg"><label class="fl">Confirmar contraseña</label><div style="position:relative"><input class="fi" id="reg-pass2" type="password" placeholder="Repetí tu contraseña" autocomplete="new-password" onkeypress="if(event.key==='Enter')doReg()" style="padding-right:44px"><button type="button" onclick="togglePwd('reg-pass2',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--t3);padding:4px">👁</button></div></div>
+    <div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:9px 12px;margin-bottom:14px;font-size:10px;color:var(--t3)">💡 Guardá bien tu contraseña. Si la olvidás, pedile al organizador que la resetee.</div>
+    <div style="display:flex;gap:8px"><button class="btn btn-p" style="flex:1" onclick="doReg()">¡Crear cuenta!</button><button class="btn btn-p" style="flex:1;background:linear-gradient(135deg,#6d28d9,#7c3aed)" onclick="closeM('m-reg');openLoginModal()">Iniciar sesión</button></div>
+  </div>
+  <div id="reg-success" style="display:none;text-align:center;padding:8px 0">
+    <div style="background:linear-gradient(135deg,#059669,#047857);border-radius:14px;padding:18px 16px;color:#fff;margin-bottom:16px">
+      <div style="font-size:28px;margin-bottom:6px">✅</div>
+      <div style="font-size:16px;font-weight:900;margin-bottom:4px">¡Registro exitoso!</div>
+      <div id="reg-success-name" style="font-size:13px;font-weight:600;opacity:.9"></div>
+    </div>
+    <button class="btn btn-p" style="width:100%;font-size:15px;padding:14px" onclick="closeM('m-reg');go('pr')">Entrar a la Polla 🏆</button>
+  </div>
 </div></div>
 <!-- MODAL MATCH -->
 <div id="m-mx2" class="ovl off"><div class="modal">
@@ -591,18 +604,16 @@ const GOLES_INIT=[
   {name:'Erling Haaland',team:'Noruega',flag:'🇳🇴',goals:4},
   {name:'Deniz Undav',team:'Alemania',flag:'🇩🇪',goals:3},
   {name:'Jonathan David',team:'Canadá',flag:'🇨🇦',goals:3},
-  {name:'Elijah Just',team:'EE.UU.',flag:'🇺🇸',goals:2},
-  {name:'Harry Kane',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:2},
-  {name:'Viktor Gyökeres',team:'Suecia',flag:'🇸🇪',goals:2},
-  {name:'Lamine Yamal',team:'España',flag:'🇪🇸',goals:2},
-  {name:'Santiago Giménez',team:'México',flag:'🇲🇽',goals:2},
   {name:'Vinicius Jr.',team:'Brasil',flag:'🇧🇷',goals:2},
-  {name:'Cristiano Ronaldo',team:'Portugal',flag:'🇵🇹',goals:1},
+  {name:'Cody Gakpo',team:'Países Bajos',flag:'🇳🇱',goals:2},
+  {name:'Ayase Ueda',team:'Japón',flag:'🇯🇵',goals:2},
+  {name:'Mikel Oyarzabal',team:'España',flag:'🇪🇸',goals:2},
+  {name:'Folarin Balogun',team:'EE.UU.',flag:'🇺🇸',goals:2},
 ];
 function loadG(){
   try{const s=localStorage.getItem('cod26');if(s){G={...G,...JSON.parse(s)};if(!G.prizes)G.prizes={p1:'',p2:'',p3:'',p4:''};}}catch(e){}
   if(!G.m)G.m=[];
-  if(!G.goles||!G.goles.length){G.goles=GOLES_INIT.map(g=>({...g}));}
+  if(!G.goles||G.goles.length<10){G.goles=GOLES_INIT.map(g=>({...g}));}
   const _eIds=new Set(G.m.map(m=>m.id));
   const _toAdd=PRESET.map((m,i)=>({pen:null,firstScorer:null,halfGoal:null,...m,id:'p'+i,rg1:'rg1' in m?m.rg1:null,rg2:'rg2' in m?m.rg2:null})).filter(m=>!_eIds.has(m.id));
   if(_toAdd.length){G.m=[...G.m,..._toAdd];saveG();}
@@ -610,7 +621,7 @@ function loadG(){
 }
 
 function saveG(){localStorage.setItem('cod26',JSON.stringify(G));}
-function saveMe(){localStorage.setItem('cod26-me',me?JSON.stringify(me):'null');}
+function saveMe(){localStorage.setItem('cod26-me',me?JSON.stringify(me):'null');renderHdrJoin();}
 function won(a,b){return +a>+b?'t1':+b>+a?'t2':'d';}
 function done(m){return m.rg1!==null&&m.rg1!==undefined&&m.rg1!=='';}
 function locked(m){return m.date&&new Date()>=new Date(m.date);}
@@ -833,7 +844,7 @@ function swRnd(r){curRnd=r;killT();renderMX();}
 // ─── GOLEADORES ───
 function goleadoresTopHtml(){
   if(!G.goles||!G.goles.length)return '';
-  const sorted=[...G.goles].sort((a,b)=>b.goals-a.goals).slice(0,5);
+  const sorted=[...G.goles].sort((a,b)=>b.goals-a.goals).slice(0,10);
   const medals=['🥇','🥈','🥉'];
   let rows=sorted.map((g,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;${i<sorted.length-1?'border-bottom:1px solid rgba(255,255,255,.05)':''}">
     <span style="font-size:14px;min-width:20px;text-align:center">${medals[i]||''}</span>
@@ -844,7 +855,7 @@ function goleadoresTopHtml(){
   const editBtn=aOpen?`<button class="btn btn-g" style="width:100%;margin-top:8px;font-size:11px;padding:6px" onclick="openGolesModal()">✏️ Editar goleadores</button>`:'';
   return `<div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:12px 14px;margin-bottom:13px">
     <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#22c55e;margin-bottom:8px">⚽ GOLEADORES</div>
-    ${rows}${G.goles.length>5?`<div style="font-size:9px;color:var(--t4);text-align:center;margin-top:6px">+${G.goles.length-5} más</div>`:''}
+    ${rows}
     ${editBtn}
   </div>`;
 }
@@ -1059,7 +1070,7 @@ function setPen(pid,mid,side){
 }
 // ─── REGISTER ───
 function togglePwd(id,btn){const el=document.getElementById(id);const show=el.type==='password';el.type=show?'text':'password';btn.textContent=show?'🙈':'👁';}
-function openReg(){document.getElementById('reg-name').value='';document.getElementById('reg-pass').value='';document.getElementById('reg-pass2').value='';openM('m-reg');}
+function openReg(){document.getElementById('reg-name').value='';document.getElementById('reg-pass').value='';document.getElementById('reg-pass2').value='';document.getElementById('reg-form').style.display='block';document.getElementById('reg-success').style.display='none';openM('m-reg');}
 function selEm(el,ec){selEmoji=decodeURIComponent(ec);document.querySelectorAll('.eopt').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
 let _doRegBusy=false;
 function doReg(){
@@ -1087,8 +1098,9 @@ function doReg(){
   AL.lastPackDay=new Date().toISOString().slice(0,10);
   AL.packsToday=0;
   saveAL();
-  closeM('m-reg');go('pr');
-  showT('✅ ¡Cuenta creada exitosamente! Bienvenido/a, '+name+' 🎉');
+  document.getElementById('reg-form').style.display='none';
+  document.getElementById('reg-success-name').textContent='¡Bienvenido/a, '+name+'! 🎉';
+  document.getElementById('reg-success').style.display='block';
 }
 function logAs(pid){const p=G.p.find(x=>x.id===pid);if(!p)return;me=p;saveMe();renderPR();showT('✅ ¡Hola de nuevo, '+p.name+'!');}
 function swUser(){me=null;saveMe();renderPR();}
@@ -1264,8 +1276,13 @@ function startAutoRefresh(){
     if(document.getElementById('s-lb')?.classList.contains('on'))renderLB();
   },30000);
 }
+function renderHdrJoin(){
+  const el=document.getElementById('hdr-join');if(!el)return;
+  if(!me){el.innerHTML=`<button class="btn btn-p" style="font-size:11px;padding:6px 12px;border-radius:20px" onclick="openReg()">🏆 Unirse</button>`;}
+  else{el.innerHTML=`<div style="display:flex;align-items:center;gap:6px"><div class="av a${G.p.findIndex(x=>x.id===me.id)%10}" style="width:28px;height:28px;font-size:12px">${me.emoji||me.name[0]}</div><span style="font-size:11px;font-weight:800;color:var(--t1)">${me.name}</span></div>`;}
+}
 // INIT
-loadG();renderLB();startAutoRefresh();
+loadG();renderLB();renderHdrJoin();startAutoRefresh();
 const PHOTOS={
   'L. Messi':'Lionel-Messi-Argentina-2022-FIFA-World-Cup_(cropped).jpg',
   'J. Álvarez':'Julian_Alvarez_2022.jpg',
@@ -1619,12 +1636,95 @@ function showReveal(cards){
   }
 }
 let alCurGroup='ALL';
+let alMode='album'; // 'album' | 'xi'
 function buildAlTabs(){
   const gs=['ALL','A','B','C','D','E','F','G','H','I','J','K','L'];
-  document.getElementById('al-tabs').innerHTML=gs.map(g=>`<button class="rtab${alCurGroup===g?' on':''}" onclick="switchAlG(event,'${g}')">${g==='ALL'?'Todo':'G '+g}</button>`).join('');
+  const modeBtns=`<button class="rtab${alMode==='album'?' on':''}" onclick="switchAlMode('album')">🃏 Álbum</button><button class="rtab${alMode==='xi'?' on':''}" onclick="switchAlMode('xi')">⚽ XI Titular</button>`;
+  const groupBtns=gs.map(g=>`<button class="rtab${alCurGroup===g?' on':''}" onclick="switchAlG(event,'${g}')">${g==='ALL'?'Todo':'G '+g}</button>`).join('');
+  document.getElementById('al-tabs').innerHTML=modeBtns+'<span style="display:inline-block;width:1px;height:20px;background:rgba(255,255,255,.15);margin:0 4px;vertical-align:middle"></span>'+groupBtns;
 }
-function switchAlG(e,g){alCurGroup=g;document.querySelectorAll('#al-tabs .rtab').forEach(b=>b.classList.remove('on'));e.target.classList.add('on');renderAlbumGrid();}
+function switchAlMode(mode){alMode=mode;buildAlTabs();renderAlbumGrid();}
+function switchAlG(e,g){alCurGroup=g;buildAlTabs();renderAlbumGrid();}
+function getTitulares(players){
+  const byPos={G:[],D:[],M:[],F:[]};
+  players.forEach(([n,p])=>{if(byPos[p])byPos[p].push([n,p]);});
+  return [...byPos.G.slice(0,1),...byPos.D.slice(0,4),...byPos.M.slice(0,3),...byPos.F.slice(0,3)];
+}
+function renderXIView(){
+  const SKIN={
+    'Argentina':'tanned','Brasil':'tanned','Colombia':'brown','México':'tanned','Uruguay':'tanned',
+    'Paraguay':'tanned','Ecuador':'tanned','España':'light','Francia':'light','Alemania':'light',
+    'Portugal':'light','Países Bajos':'light','Bélgica':'light','Inglaterra':'light',
+    'Suecia':'pale','Noruega':'pale','Suiza':'light','Austria':'light','Chequia':'light',
+    'Croacia':'light','Bosnia-Herz.':'light','Escocia':'pale',
+    'USA':'light','Canadá':'light','Panamá':'tanned','Australia':'light','Nueva Zelanda':'light',
+    'Corea del Sur':'yellow','Japón':'yellow','Turquía':'tanned','Irán':'tanned',
+    'Irak':'brown','Arabia Saudita':'brown','Qatar':'brown','Jordania':'brown','Uzbekistán':'tanned',
+    'Senegal':'darkBrown','Ghana':'darkBrown','Marruecos':'brown','Egipto':'brown',
+    'Costa de Marfil':'darkBrown','Rep. D. Congo':'darkBrown','Cabo Verde':'brown',
+    'Argelia':'brown','Sudáfrica':'brown','Haití':'darkBrown','Curazao':'brown'
+  };
+  const posC={G:'#f59e0b',D:'#3b82f6',M:'#22c55e',F:'#ef4444'};
+  const posGrad={G:'linear-gradient(160deg,#78350f,#92400e)',D:'linear-gradient(160deg,#1e3a5f,#1e40af)',M:'linear-gradient(160deg,#14532d,#166534)',F:'linear-gradient(160deg,#7f1d1d,#991b1b)'};
+  const posLabel={G:'GK',D:'DEF',M:'MID',F:'ST'};
+  const entries=Object.entries(SQUADS).filter(([c,[f,g]])=>alCurGroup==="ALL"||g===alCurGroup);
+  const mkCard=(country,flag,skin,name,pos,idx,w)=>{
+    const id=`${country}_${idx}`,has=AL.col[id];
+    const pc=posC[pos],pg=posGrad[pos];
+    const isStar=STARS.has(name);
+    const photoUrl=getPhotoUrl(name);
+    const seed=encodeURIComponent(name+country);
+    const avatarUrl=`https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}&skinColor=${skin}&backgroundColor=transparent`;
+    const imgSrc=photoUrl||avatarUrl;
+    const shortName=name.length>8?name.slice(0,8)+'…':name;
+    const ws=`width:${w};flex-shrink:0;`;
+    if(!has)return`<div style="${ws}aspect-ratio:2/3;border-radius:8px;background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="font-size:16px;opacity:.2">?</div><div style="font-size:6px;color:rgba(255,255,255,.2);font-weight:700;text-align:center;padding:0 2px">${shortName}</div></div>`;
+    const starBorder=isStar?'box-shadow:0 0 0 2px #f59e0b,0 0 10px rgba(245,158,11,.6);':'';
+    return`<div style="${ws}aspect-ratio:2/3;border-radius:8px;overflow:hidden;position:relative;background:${pg};${starBorder}">
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${pc};"></div>
+      ${isStar?'<div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);font-size:8px;z-index:2">⭐</div>':''}
+      <div style="position:absolute;left:0;right:0;top:14px;bottom:22px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+        <img src="${imgSrc}" style="width:${photoUrl?'100%':'75%'};height:100%;object-fit:${photoUrl?'cover':'contain'};${photoUrl?'object-position:top center;':''}" loading="lazy" onerror="this.src='${avatarUrl}'">
+      </div>
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:2px 2px 3px;background:linear-gradient(0deg,rgba(0,0,0,.92),rgba(0,0,0,.5))">
+        <div style="font-size:5.5px;font-weight:900;color:${pc};text-transform:uppercase;text-align:center">${posLabel[pos]}</div>
+        <div style="font-size:7px;font-weight:900;color:#fff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${shortName}</div>
+      </div>
+    </div>`;
+  };
+  document.getElementById('al-body').innerHTML=entries.map(([country,[flag,grp,allPlayers]])=>{
+    const xi=getTitulares(allPlayers);
+    const idxMap={};allPlayers.forEach(([n,p],i)=>idxMap[n]=i);
+    const gk=xi.filter(([n,p])=>p==='G');
+    const def=xi.filter(([n,p])=>p==='D');
+    const mid=xi.filter(([n,p])=>p==='M');
+    const fwd=xi.filter(([n,p])=>p==='F');
+    const skin=SKIN[country]||'light';
+    const col=xi.filter(([n])=>AL.col[`${country}_${idxMap[n]}`]).length;
+    const mkRow=(arr,label)=>{
+      const n=arr.length||1;
+      const w=`calc(${100/n}% - ${Math.ceil((n-1)*5/n)}px)`;
+      return`<div style="margin-bottom:8px"><div style="font-size:8px;color:rgba(255,255,255,.4);font-weight:800;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:4px">${label}</div><div style="display:flex;justify-content:center;gap:5px">${arr.map(([nm,p])=>mkCard(country,flag,skin,nm,p,idxMap[nm],w)).join('')}</div></div>`;
+    };
+    return`<div style="background:var(--glass);border:1px solid var(--bdr);border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:28px">${flag}</span>
+          <div><div style="font-size:16px;font-weight:900;color:var(--t1)">${country}</div><div style="font-size:10px;color:var(--t3)">G ${grp} · ${col}/11 titulares</div></div>
+        </div>
+        <div style="font-size:11px;font-weight:900;color:${col===11?'#22c55e':'var(--t3)'}">XI ${col===11?'✅':col+'/11'}</div>
+      </div>
+      <div style="background:linear-gradient(180deg,rgba(21,128,61,.15),rgba(21,128,61,.05));border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:10px">
+        ${mkRow(fwd,'⚡ Delanteros')}
+        ${mkRow(mid,'🔄 Mediocampo')}
+        ${mkRow(def,'🛡️ Defensores')}
+        ${mkRow(gk,'🧤 Arquero')}
+      </div>
+    </div>`;
+  }).join('');
+}
 function renderAlbumGrid(){
+  if(alMode==='xi'){renderXIView();return;}
   const SKIN={
     'Argentina':'tanned','Brasil':'tanned','Colombia':'brown','México':'tanned','Uruguay':'tanned',
     'Paraguay':'tanned','Ecuador':'tanned','España':'light','Francia':'light','Alemania':'light',
@@ -1989,7 +2089,7 @@ function startFirebaseSync(){
     if(data){
       G={...G,...data};
       if(!G.prizes)G.prizes={p1:'',p2:'',p3:'',p4:''};
-      if(!G.goles||!G.goles.length)G.goles=GOLES_INIT.map(g=>({...g}));
+      if(!G.goles||G.goles.length<10)G.goles=GOLES_INIT.map(g=>({...g}));
       if(!G.p)G.p=[];
       if(!G.m)G.m=[];
       if(!G.preds)G.preds={};
@@ -1997,7 +2097,7 @@ function startFirebaseSync(){
       const _added=_mergePreset();
       const _seen={};G.p=G.p.filter(p=>{const k=p.name.toLowerCase();if(_seen[k])return false;_seen[k]=true;return true;});
       try{const u=localStorage.getItem('cod26-me');if(u){const p=JSON.parse(u);if(p&&G.p.find(x=>x.id===p.id))me=p;}}catch(e){}
-      if(_added)saveG();
+      const _golesFixed1=!data.goles||data.goles.length<10;if(_added||_golesFixed1)saveG();
     }
     fbReady=true;
     hideFbLoading();
@@ -2007,17 +2107,17 @@ function startFirebaseSync(){
       if(d&&fbReady){
         const recentSave=Date.now()-_fbSaveTs<4000;
         if(d.m&&G.m&&d.m.length<G.m.length)return;
-        if(recentSave&&d.p&&G.p&&d.p.length<G.p.length)return;
+        if(recentSave)return;
         const oldMe=me;
         G={...G,...d};
         if(!G.prizes)G.prizes={p1:'',p2:'',p3:'',p4:''};
-        if(!G.goles||!G.goles.length)G.goles=GOLES_INIT.map(g=>({...g}));
+        if(!G.goles||G.goles.length<10)G.goles=GOLES_INIT.map(g=>({...g}));
         if(!G.p)G.p=[];
         _fixPresetErrors();
         const _added2=_mergePreset();
         const seen={};G.p=G.p.filter(p=>{const k=p.name.toLowerCase();if(seen[k])return false;seen[k]=true;return true;});
         if(oldMe)me=G.p.find(x=>x.id===oldMe.id)||null;
-        if(_added2)saveG();
+        const _golesFixed=!d.goles||d.goles.length<10;if(_added2||_golesFixed)saveG();
         renderLB();
         const activeTab=document.querySelector('.nb.on')?.id?.replace('nb-','');
         if(activeTab&&activeTab!=='lb')({mx:renderMX,pr:renderPR,fi:renderFichaScreen,ad:renderAd,al:renderAlbum}[activeTab])?.();
