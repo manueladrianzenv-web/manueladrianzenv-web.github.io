@@ -1642,46 +1642,120 @@ Object.entries(SQUADS).forEach(([country,[flag,group,players]])=>{
   players.forEach(([name,pos],i)=>{AL_PLAYERS.push({id:`${country}_${i}`,name,pos,country,flag,group});});
 });
 const AL_TOTAL=AL_PLAYERS.length;
+// ─── TITULARES (11 starters per team) + GOLD (top-3 per team) ───
+const TITULARES=new Set();
+const GOLD=new Set();
+Object.entries(SQUADS).forEach(([country,[flag,group,players]])=>{
+  getTitulares(players).forEach(([n])=>TITULARES.add(n));
+  players.filter(([n])=>STARS.has(n)).slice(0,3).forEach(([n])=>GOLD.add(n));
+});
+// ─── SKIN TONES for avatars ───
+const SKIN_MAP={
+  'Argentina':'tanned','Brasil':'tanned','Colombia':'brown','México':'tanned','Uruguay':'tanned',
+  'Paraguay':'tanned','Ecuador':'tanned','España':'light','Francia':'light','Alemania':'light',
+  'Portugal':'light','Países Bajos':'light','Bélgica':'light','Inglaterra':'light',
+  'Suecia':'pale','Noruega':'pale','Suiza':'light','Austria':'light','Chequia':'light',
+  'Croacia':'light','Bosnia-Herz.':'light','Escocia':'pale','USA':'light','Canadá':'light',
+  'Panamá':'tanned','Australia':'light','Nueva Zelanda':'light','Corea del Sur':'yellow',
+  'Japón':'yellow','Turquía':'tanned','Irán':'tanned','Irak':'brown','Arabia Saudita':'brown',
+  'Qatar':'brown','Jordania':'brown','Uzbekistán':'tanned','Senegal':'darkBrown','Ghana':'darkBrown',
+  'Marruecos':'brown','Egipto':'brown','Costa de Marfil':'darkBrown','Rep. D. Congo':'darkBrown',
+  'Cabo Verde':'brown','Argelia':'brown','Sudáfrica':'brown','Haití':'darkBrown','Curazao':'brown'
+};
 function alCollected(){return Object.keys(AL.col).length;}
 function weightedPick(){
   const uncol=AL_PLAYERS.filter(p=>!AL.col[p.id]);
-  const pNew=uncol.length>0?Math.min(0.95,0.28+(uncol.length/AL_TOTAL)*0.50):0;
-  if(Math.random()<pNew&&uncol.length>0)return{...uncol[Math.floor(Math.random()*uncol.length)],isNew:true};
+  const ratio=uncol.length/AL_TOTAL;
+  const pNew=uncol.length>0?Math.min(0.97,0.62+ratio*0.35):0;
+  if(Math.random()<pNew&&uncol.length>0)return{...smartPickUncol(uncol),isNew:true};
   return{...AL_PLAYERS[Math.floor(Math.random()*AL_TOTAL)],isNew:false};
+}
+// Smart picker: weight countries with near-complete sets 3× to help finish the album
+function smartPickUncol(uncol){
+  if(uncol.length<4)return uncol[Math.floor(Math.random()*uncol.length)];
+  const byC={};
+  uncol.forEach(p=>{if(!byC[p.country])byC[p.country]=[];byC[p.country].push(p);});
+  const ctrs=Object.keys(byC);
+  const totByC={};
+  AL_PLAYERS.forEach(p=>{totByC[p.country]=(totByC[p.country]||0)+1;});
+  const weights=ctrs.map(c=>{const n=byC[c].length;return n<=3?n*3:n;});
+  const tw=weights.reduce((a,b)=>a+b,0);
+  let r=Math.random()*tw;let chosen=ctrs[0];
+  for(let j=0;j<ctrs.length;j++){r-=weights[j];if(r<=0){chosen=ctrs[j];break;}}
+  const list=byC[chosen];return list[Math.floor(Math.random()*list.length)];
 }
 // (openPack v2 más abajo — esta versión eliminada)
 function earnPack(){AL.packs++;saveAL();showT('🎁 ¡Sobre agregado!');updateAlStats();}
 function closeReveal(){document.getElementById('al-reveal').style.display='none';renderAlbumGrid();renderDuplicates();renderAlbumRanking();}
 function showReveal(cards){
   const rev=document.getElementById('al-reveal');rev.style.display='block';
-  const posL={G:'🧤 Goalkeeper',D:'🛡️ Defender',M:'⚙️ Midfielder',F:'⚡ Striker'};
+  const posL={G:'🧤 Portero',D:'🛡️ Defensa',M:'⚙️ Mediocampista',F:'⚡ Delantero'};
   const posC={G:'#f59e0b',D:'#3b82f6',M:'#22c55e',F:'#ef4444'};
   let hasStars=false;
   document.getElementById('al-cards').innerHTML=cards.map((p,i)=>{
     const isStar=STARS.has(p.name);
-    if(isStar)hasStars=true;
-    return`<div class="al-card${p.isNew?' al-card-new':''}${isStar?' star-card':''}" style="animation-delay:${i*.1}s" id="reveal-card-${i}">
+    const isGold=GOLD.has(p.name);
+    const isTit=TITULARES.has(p.name);
+    if(isStar||isGold)hasStars=true;
+    const skin=SKIN_MAP[p.country]||'light';
+    const seed=encodeURIComponent(p.name+p.country);
+    const avatarUrl=`https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}&skinColor=${skin}&backgroundColor=transparent`;
+    const photoUrl=getPhotoUrl(p.name);
+    // Titulares con foto (real o wikipedia async); no-titulares con avatar
+    const imgSrc=isTit?(photoUrl||avatarUrl):avatarUrl;
+    const imgFit=isTit&&photoUrl?'cover':'contain';
+    const imgFilter=isTit&&photoUrl?'filter:saturate(1.5) contrast(1.12) brightness(1.06);':'';
+    const goldStyle=isGold
+      ?'background:linear-gradient(135deg,rgba(120,80,0,.18),rgba(40,30,0,.22));border:2px solid #f59e0b;box-shadow:0 0 16px rgba(245,158,11,.5),inset 0 0 8px rgba(245,158,11,.06);'
+      :'';
+    return`<div class="al-card${p.isNew?' al-card-new':''}${isStar?' star-card':''}" style="animation-delay:${i*.1}s;${goldStyle}padding:10px 12px;position:relative;overflow:hidden" id="reveal-card-${i}">
+      ${isGold?`<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#92400e,#f59e0b,#fbbf24,#f59e0b,#92400e)"></div>`:''}
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="font-size:26px">${p.flag}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:4px">
-            <span style="font-size:15px;font-weight:900;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
-            ${isStar?'<span style="font-size:14px">⭐</span>':''}
-          </div>
-          <div style="font-size:11px;color:var(--t3)">${p.country} · ${posL[p.pos]} · <span style="color:${posC[p.pos]};font-weight:800">#${JERSEYS[p.name]||'—'}</span></div>
+        <div style="position:relative;width:56px;height:56px;${isGold?'border-radius:9px':'border-radius:50%'};overflow:hidden;flex-shrink:0;background:rgba(255,255,255,.06);${isGold?'box-shadow:0 0 10px rgba(245,158,11,.35)':''}">
+          <img id="rcimg-${i}" src="${imgSrc}"
+            style="width:100%;height:100%;object-fit:${imgFit};object-position:top center;${imgFilter}"
+            onerror="this.onerror=null;this.src='${avatarUrl}'">
         </div>
-        <div style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;background:${p.isNew?'rgba(124,58,237,.3)':'rgba(255,255,255,.08)'};color:${p.isNew?'#a78bfa':'#666'}">${p.isNew?'🌟 NEW':'🔄 Repeat'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+            ${isGold?'<span style="font-size:13px">👑</span>':''}
+            <span style="font-size:15px;font-weight:900;color:${isGold?'#fbbf24':'#fff'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
+            ${isStar&&!isGold?'<span style="font-size:13px">⭐</span>':''}
+          </div>
+          <div style="font-size:11px;color:var(--t3);margin-top:1px">${p.country} · ${posL[p.pos]} · <span style="color:${posC[p.pos]};font-weight:800">#${JERSEYS[p.name]||'—'}</span></div>
+          ${isGold?'<div style="font-size:9px;letter-spacing:1.2px;color:#f59e0b;font-weight:800;margin-top:3px;text-transform:uppercase">✨ Figurita Dorada</div>':''}
+          ${isTit&&!isGold?'<div style="font-size:8px;color:#a78bfa;margin-top:2px">👕 Titular</div>':''}
+        </div>
+        <div style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;flex-shrink:0;background:${p.isNew?'rgba(124,58,237,.3)':'rgba(255,255,255,.08)'};color:${p.isNew?'#a78bfa':'#666'}">${p.isNew?'🌟 NEW':'🔄 Repeat'}</div>
       </div>
     </div>`;
   }).join('');
+  // Async fetch Wikipedia photos for titulares without pre-defined photo
+  setTimeout(()=>{
+    cards.forEach((p,i)=>{
+      if(!TITULARES.has(p.name)||getPhotoUrl(p.name))return;
+      const img=document.getElementById('rcimg-'+i);
+      if(!img)return;
+      const skin=SKIN_MAP[p.country]||'light';
+      const fallback=`https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(p.name+p.country)}&skinColor=${skin}&backgroundColor=transparent`;
+      const title=PLAYER_WIKI[p.name]||p.name.replace(/[^a-zA-ZÀ-ÿ0-9 .]/g,'_').replace(/ /g,'_');
+      fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title))
+        .then(r=>r.ok?r.json():null)
+        .then(data=>{
+          if(!data?.thumbnail?.source)return;
+          img.src=data.thumbnail.source;
+          img.style.objectFit='cover';img.style.objectPosition='top center';
+          img.style.filter='saturate(1.5) contrast(1.12) brightness(1.06)';
+        }).catch(()=>{});
+    });
+  },200);
   rev.scrollIntoView({behavior:'smooth',block:'nearest'});
-  // Trigger star effects after card reveal
   if(hasStars){
     setTimeout(()=>{
       cards.forEach((p,i)=>{
-        if(STARS.has(p.name)){
+        if(STARS.has(p.name)||GOLD.has(p.name)){
           const el=document.getElementById(`reveal-card-${i}`);
-          if(el){showStarBurst(el);if(i===0||!hasStars)playStarSound();}
+          if(el)showStarBurst(el);
         }
       });
       playStarSound();
@@ -1889,10 +1963,12 @@ function generateOnePack(){
   const tempCol=new Set(Object.keys(AL.col));
   for(let i=0;i<5;i++){
     const uncol=AL_PLAYERS.filter(p=>!tempCol.has(p.id));
-    const pNew=uncol.length>0?Math.min(0.95,0.28+(uncol.length/AL_TOTAL)*0.50):0;
+    const ratio=uncol.length/AL_TOTAL;
+    // 200% vs pure random: formula ensures 62-97% chance of new card at every stage
+    const pNew=uncol.length>0?Math.min(0.97,0.62+ratio*0.35):0;
     let p;
     if(Math.random()<pNew&&uncol.length>0){
-      p={...uncol[Math.floor(Math.random()*uncol.length)],isNew:true};
+      p={...smartPickUncol(uncol),isNew:true};
       tempCol.add(p.id);
     }else{
       p={...AL_PLAYERS[Math.floor(Math.random()*AL_TOTAL)],isNew:false};
