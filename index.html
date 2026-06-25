@@ -2157,26 +2157,28 @@ function renderAlbumGrid(){
       const pg=posGrad[pos]||'linear-gradient(160deg,#1f2937,#374151)';
       const jerseyNum=JERSEYS[name]||(i+1);
       const isStar=STARS.has(name);
-      const photoUrl=getPhotoUrl(name);
+      const isGold=GOLD.has(name);
+      const isTit=TITULARES.has(name);
+      const needsWiki=isStar||isGold||isTit; // fetch real photo via REST API for these
       const seed=encodeURIComponent(name+country);
       const avatarUrl=`https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}&skinColor=${skin}&backgroundColor=transparent`;
-      const imgSrc=photoUrl||avatarUrl;
       const shortName=name.length>9?name.slice(0,9)+'…':name;
       if(has){
-        const starBorder=isStar?'box-shadow:0 0 0 2.5px #f59e0b,0 0 18px rgba(245,158,11,.7),0 6px 20px rgba(0,0,0,.6);':'box-shadow:0 4px 14px rgba(0,0,0,.55);';
+        const starBorder=isGold?'box-shadow:0 0 0 2.5px #f59e0b,0 0 18px rgba(245,158,11,.7),0 6px 20px rgba(0,0,0,.6);':isStar?'box-shadow:0 0 0 1.5px #f59e0b,0 0 10px rgba(245,158,11,.4),0 4px 14px rgba(0,0,0,.55);':'box-shadow:0 4px 14px rgba(0,0,0,.55);';
         const topBand=`background:${pc};`;
-        return `<div style="width:calc(33.33% - 5px);aspect-ratio:2/3;border-radius:10px;overflow:hidden;position:relative;background:${pg};${starBorder}" title="${name} · ${posLabel[pos]} · #${jerseyNum}${isStar?' ⭐':''}">
+        const wikiAttr=needsWiki?`data-wn="${name.replace(/"/g,'&quot;')}"`:''
+        return `<div style="width:calc(33.33% - 5px);aspect-ratio:2/3;border-radius:10px;overflow:hidden;position:relative;background:${pg};${starBorder}" title="${name} · ${posLabel[pos]} · #${jerseyNum}${isGold?' 👑':isStar?' ⭐':''}">
           <!-- Top band -->
-          <div style="position:absolute;top:0;left:0;right:0;height:7px;${topBand}${isStar?'background:linear-gradient(90deg,#d97706,#f59e0b,#d97706);':''}"></div>
+          <div style="position:absolute;top:0;left:0;right:0;height:7px;${topBand}${isGold?'background:linear-gradient(90deg,#92400e,#f59e0b,#fbbf24,#f59e0b,#92400e);':isStar?'background:linear-gradient(90deg,#d97706,#f59e0b,#d97706);':''}"></div>
           <!-- Flag + number -->
           <div style="position:absolute;top:9px;left:5px;right:5px;display:flex;justify-content:space-between;align-items:center">
             <span style="font-size:14px">${flag}</span>
             <span style="font-size:9px;font-weight:900;color:rgba(255,255,255,.7);background:rgba(0,0,0,.5);border-radius:4px;padding:1px 4px">#${jerseyNum}</span>
           </div>
-          ${isStar?'<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);font-size:11px;z-index:2">⭐</div>':''}
-          <!-- Photo -->
+          ${isGold?'<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);font-size:11px;z-index:2">👑</div>':isStar?'<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);font-size:11px;z-index:2">⭐</div>':''}
+          <!-- Photo: avatar first, REST API loads real photo async for stars/gold/titulares -->
           <div style="position:absolute;left:0;right:0;top:22px;bottom:30px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
-            <img src="${imgSrc}" style="width:${photoUrl?'100%':'75%'};height:100%;object-fit:${photoUrl?'cover':'contain'};${photoUrl?'object-position:top center;':''}" loading="lazy" onerror="this.src='${avatarUrl}'">
+            <img src="${avatarUrl}" ${wikiAttr} style="width:75%;height:100%;object-fit:contain;object-position:center" loading="lazy" data-fb="${avatarUrl}" onerror="this.onerror=null;this.src=this.dataset.fb">
           </div>
           <!-- Bottom info -->
           <div style="position:absolute;bottom:0;left:0;right:0;padding:3px 4px 4px;background:linear-gradient(0deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.6) 100%)">
@@ -2207,6 +2209,27 @@ function renderAlbumGrid(){
       <div style="display:flex;flex-wrap:wrap;gap:6px">${slots}</div>
     </div>`;
   }).join('');
+  // Async-load real photos for all STARS/GOLD/TITULARES cards visible in the album
+  setTimeout(fetchAlbumPhotos, 120);
+}
+function fetchAlbumPhotos(){
+  document.querySelectorAll('#al-body img[data-wn]').forEach(img=>{
+    if(img.dataset.loaded)return;
+    img.dataset.loaded='1';
+    const name=img.dataset.wn;
+    const title=PLAYER_WIKI[name]||(name.includes('.')?null:name.replace(/ /g,'_'));
+    if(!title)return;
+    fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title))
+      .then(r=>r.ok?r.json():null)
+      .then(data=>{
+        if(!data?.thumbnail?.source)return;
+        img.src=data.thumbnail.source;
+        img.style.width='100%';
+        img.style.objectFit='cover';
+        img.style.objectPosition='top center';
+        img.style.filter='saturate(1.5) contrast(1.12) brightness(1.06)';
+      }).catch(()=>{});
+  });
 }
 function updateAlStats(){
   const col=alCollected(),pct=Math.round(col/AL_TOTAL*100);
