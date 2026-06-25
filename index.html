@@ -802,6 +802,7 @@ function renderMX(){
   if(curRnd==='grupos'){
     const st=calcGroupStandings();
     const {qualTop2,qualThirds}=getQualifiedTeams(st);
+    const qual=new Set([...qualTop2,...qualThirds]);
     const byGrp={};ms.forEach(m=>{const g=m.group||'?';if(!byGrp[g])byGrp[g]=[];byGrp[g].push(m);});
     Object.entries(byGrp).sort(([a],[b])=>a.localeCompare(b)).forEach(([grp,matches])=>{
       html+=`<div class="ph"><div class="phl">Grupo ${grp}</div><div class="phln"></div></div>`;
@@ -811,12 +812,12 @@ function renderMX(){
       const upcoming=matches.filter(m=>!done(m));
       if(upcoming.length){
         html+=`<div style="font-size:9px;color:var(--t4);font-weight:800;letter-spacing:1px;text-transform:uppercase;margin:8px 0 5px">PRÓXIMOS PARTIDOS</div>`;
-        html+=upcoming.map(m=>mcHtml(m,null,false)).join('');
+        html+=upcoming.map(m=>mcHtml(m,null,false,qual)).join('');
       }
       // Played matches collapsible
       const played=matches.filter(m=>done(m));
       if(played.length){
-        html+=`<details style="margin-bottom:4px"><summary style="font-size:9px;color:var(--t4);font-weight:800;cursor:pointer;letter-spacing:1px;text-transform:uppercase;padding:6px 0;list-style:none">▸ VER RESULTADOS (${played.length})</summary><div style="margin-top:4px">${played.map(m=>mcHtml(m,null,false)).join('')}</div></details>`;
+        html+=`<details style="margin-bottom:4px"><summary style="font-size:9px;color:var(--t4);font-weight:800;cursor:pointer;letter-spacing:1px;text-transform:uppercase;padding:6px 0;list-style:none">▸ VER RESULTADOS (${played.length})</summary><div style="margin-top:4px">${played.map(m=>mcHtml(m,null,false,qual)).join('')}</div></details>`;
       }
     });
   } else {
@@ -909,7 +910,7 @@ function openGolesAdminModal(){
 }
 function saveGoles(){saveG();closeM('m-goles');showT('Goleadores guardados ✅');renderMX();}
 // ─── MATCH CARD ───
-function mcHtml(m,pid,editable){
+function mcHtml(m,pid,editable,qual){
   const d=done(m),lk=locked(m);
   const pred=pid?G.preds[pid]?.[m.id]:null;
   const r=d&&pred?calcPts(m,pred):null;
@@ -959,9 +960,9 @@ function mcHtml(m,pid,editable){
   return`<div class="mcard" style="border-color:${bc}">
     <div class="mchdr">${grpBadge}<div style="display:flex;align-items:center;gap:5px">${timeBadge}${cdBadge}${rBadge()}${statusBadge}</div></div>
     <div class="teams-row">
-      <div class="tside"><div class="tflag" style="${tfS(m.t1)}">${m.f1}</div><div style="flex:1;min-width:0"><div class="tn">${m.t1}</div>${editable&&!d?`<div class="tsb">max +${(RND_PTS[m.round]||2)+3} pts</div>`:''}</div></div>
+      <div class="tside"><div class="tflag" style="${tfS(m.t1)}">${m.f1}</div><div style="flex:1;min-width:0"><div class="tn">${m.t1}</div>${qual&&qual.has(m.t1)?'<div style="display:inline-block;background:#059669;color:#fff;font-size:7px;font-weight:800;padding:1px 6px;border-radius:3px;letter-spacing:.8px;margin-top:2px">✓ CLASIF.</div>':''}${editable&&!d?`<div class="tsb">max +${(RND_PTS[m.round]||2)+3} pts</div>`:''}</div></div>
       ${scoreH()}
-      <div class="tside rv"><div class="tflag" style="${tfS(m.t2)}">${m.f2}</div><div style="flex:1;min-width:0"><div class="tn ra">${m.t2}</div></div></div>
+      <div class="tside rv"><div class="tflag" style="${tfS(m.t2)}">${m.f2}</div><div style="flex:1;min-width:0"><div class="tn ra">${m.t2}</div>${qual&&qual.has(m.t2)?'<div style="text-align:right"><span style="display:inline-block;background:#059669;color:#fff;font-size:7px;font-weight:800;padding:1px 6px;border-radius:3px;letter-spacing:.8px;margin-top:2px">✓ CLASIF.</span></div>':''}</div></div>
     </div>
     ${penH()}${extH()}
     ${lk&&!d?`<div class="lock-strip">🔒 Partido en curso · Predicciones bloqueadas</div>`:''}
@@ -1006,30 +1007,34 @@ function renderPR(){
 function renderPRBody(pid){
   if(!G.m.length){document.getElementById('pr-body').innerHTML=`<div class="empty"><div class="ei">📅</div><p style="font-size:12px;color:var(--t3)">El admin aún no cargó partidos</p></div>`;return;}
   let html='';
+  const {qualTop2:_qt2,qualThirds:_qt3}=getQualifiedTeams(calcGroupStandings());
+  const _qual=new Set([..._qt2,..._qt3]);
   const rp=RND_ORD.filter(r=>G.m.some(m=>m.round===r));
   rp.forEach(rnd=>{
+    const isGrp=rnd==='grupos';
+    const ql=isGrp?_qual:null;
     const rms=G.m.filter(m=>m.round===rnd);
     const dm=rms.filter(done),om=rms.filter(m=>!done(m)&&!locked(m)),lm=rms.filter(m=>!done(m)&&locked(m));
     html+=`<div class="ph"><div class="phl">${RND_N[rnd]}</div><div class="phc">${dm.length}/${rms.length} jugados</div><div class="phln"></div></div>`;
-    if(dm.length){html+=`<div class="slbl">✅ Resultados</div>`;html+=dm.map(m=>mcHtml(m,pid,false)).join('');}
+    if(dm.length){html+=`<div class="slbl">✅ Resultados</div>`;html+=dm.map(m=>mcHtml(m,pid,false,ql)).join('');}
     if(om.length){
-      if(rnd==='grupos'){
+      if(isGrp){
         const byGrp={};om.forEach(m=>{const g=m.group||'?';if(!byGrp[g])byGrp[g]=[];byGrp[g].push(m);});
         html+=`<div class="slbl">📝 Ingresa tu pronóstico</div>`;
         Object.entries(byGrp).sort(([a],[b])=>a.localeCompare(b)).forEach(([grp,ms])=>{
           html+=`<div style="font-size:8px;color:var(--gold);font-weight:800;padding:4px 0 5px;letter-spacing:2px;text-transform:uppercase">GRUPO ${grp} · ${fmtDate(ms[0].date)}</div>`;
-          html+=ms.map(m=>mcHtml(m,pid,true)).join('');
+          html+=ms.map(m=>mcHtml(m,pid,true,ql)).join('');
         });
       } else {
         const byDay={};om.forEach(m=>{const dk=dayKey(m.date);if(!byDay[dk])byDay[dk]=[];byDay[dk].push(m);});
         html+=`<div class="slbl">📝 Ingresa tu pronóstico</div>`;
         Object.entries(byDay).sort(([a],[b])=>a.localeCompare(b)).forEach(([dk,ms])=>{
           if(ms[0].date)html+=`<div style="font-size:8px;color:var(--p);font-weight:800;padding:4px 0 5px;letter-spacing:2px;text-transform:uppercase">📅 ${fmtDate(ms[0].date)}</div>`;
-          html+=ms.map(m=>mcHtml(m,pid,true)).join('');
+          html+=ms.map(m=>mcHtml(m,pid,true,ql)).join('');
         });
       }
     }
-    if(lm.length){html+=`<div class="slbl">🔒 En curso · Cerrados</div>`;html+=lm.map(m=>mcHtml(m,pid,false)).join('');}
+    if(lm.length){html+=`<div class="slbl">🔒 En curso · Cerrados</div>`;html+=lm.map(m=>mcHtml(m,pid,false,ql)).join('');}
   });
   const nextR=RND_ORD.filter(r=>!G.m.some(m=>m.round===r)&&rp.length>0&&RND_ORD.indexOf(r)>Math.max(...rp.map(r2=>RND_ORD.indexOf(r2))));
   if(nextR.length){html+=`<div class="ph"><div class="phl" style="color:var(--t4)">Próximas fases</div><div class="phln"></div></div>`;html+=nextR.slice(0,2).map(r=>`<div class="mcard" style="opacity:.35;border-color:rgba(0,0,0,.06)"><div class="mchdr"><span class="mcphase" style="color:var(--t4)">${RND_N[r]}</span><span class="badge b-next">Próxima</span></div><div style="text-align:center;font-size:11px;color:var(--t4);padding:16px">El admin cargará los partidos cuando se conozcan los clasificados</div></div>`).join('');}
