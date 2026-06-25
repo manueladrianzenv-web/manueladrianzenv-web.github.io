@@ -1918,22 +1918,25 @@ const SKIN_MAP={
   'Cabo Verde':'brown','Argelia':'brown','Sudáfrica':'brown','Haití':'darkBrown','Curazao':'brown'
 };
 function alCollected(){return Object.keys(AL.col).length;}
+// pNew formula tuned so a fully-dedicated player (20 packs/day every day) completes
+// the 832-card album in ~20 days → ~10% of players finish during the 38-day tournament.
+// Curve: 70% new-card probability at start, drops to 28% when album is nearly full.
+function calcPNew(ratio){return ratio>0?Math.min(0.85,0.28+ratio*0.42):0;}
 function weightedPick(){
   const uncol=AL_PLAYERS.filter(p=>!AL.col[p.id]);
   const ratio=uncol.length/AL_TOTAL;
-  const pNew=uncol.length>0?Math.min(0.97,0.62+ratio*0.35):0;
+  const pNew=calcPNew(ratio);
   if(Math.random()<pNew&&uncol.length>0)return{...smartPickUncol(uncol),isNew:true};
   return{...AL_PLAYERS[Math.floor(Math.random()*AL_TOTAL)],isNew:false};
 }
-// Smart picker: weight countries with near-complete sets 3× to help finish the album
+// Smart picker: country-weighted, with progressive bonus for near-complete teams
+// ≤2 remaining → 5×, ≤5 remaining → 3× (stronger endgame pull than before)
 function smartPickUncol(uncol){
   if(uncol.length<4)return uncol[Math.floor(Math.random()*uncol.length)];
   const byC={};
   uncol.forEach(p=>{if(!byC[p.country])byC[p.country]=[];byC[p.country].push(p);});
   const ctrs=Object.keys(byC);
-  const totByC={};
-  AL_PLAYERS.forEach(p=>{totByC[p.country]=(totByC[p.country]||0)+1;});
-  const weights=ctrs.map(c=>{const n=byC[c].length;return n<=3?n*3:n;});
+  const weights=ctrs.map(c=>{const n=byC[c].length;return n<=2?n*5:n<=5?n*3:n;});
   const tw=weights.reduce((a,b)=>a+b,0);
   let r=Math.random()*tw;let chosen=ctrs[0];
   for(let j=0;j<ctrs.length;j++){r-=weights[j];if(r<=0){chosen=ctrs[j];break;}}
@@ -2227,7 +2230,7 @@ function generateOnePack(){
     const uncol=AL_PLAYERS.filter(p=>!tempCol.has(p.id));
     const ratio=uncol.length/AL_TOTAL;
     // 200% vs pure random: formula ensures 62-97% chance of new card at every stage
-    const pNew=uncol.length>0?Math.min(0.97,0.62+ratio*0.35):0;
+    const pNew=calcPNew(ratio);
     let p;
     if(Math.random()<pNew&&uncol.length>0){
       p={...smartPickUncol(uncol),isNew:true};
@@ -2267,19 +2270,39 @@ function openPack(){
 function showPackPicker(){
   const picker=document.getElementById('al-picker');
   picker.style.display='block';
+  const uncol=AL_PLAYERS.filter(p=>!AL.col[p.id]);
+  const ratio=uncol.length/AL_TOTAL;
+  const pNewPct=Math.round(calcPNew(ratio)*100);
+  const collected=alCollected();
+  const pct=Math.round(collected/AL_TOTAL*100);
+  // Color the probability bar based on how full the album is
+  const barClr=pNewPct>=60?'#22c55e':pNewPct>=40?'#f59e0b':'#ef4444';
   picker.innerHTML=`
-    <div style="font-size:11px;font-weight:800;color:#a78bfa;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center">🎁 Elige tu sobre</div>
+    <div style="font-size:11px;font-weight:800;color:#a78bfa;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;text-align:center">🎁 Elige tu sobre</div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div style="font-size:8px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1px">Álbum completado</div>
+        <div style="font-size:13px;font-weight:900;color:#fff">${collected}<span style="font-size:9px;color:var(--t3);font-weight:600"> / ${AL_TOTAL}</span> <span style="font-size:10px;color:var(--t3)">(${pct}%)</span></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:8px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1px">% nueva figurita</div>
+        <div style="font-size:18px;font-weight:900;color:${barClr}">${pNewPct}<span style="font-size:10px">%</span></div>
+      </div>
+    </div>
     <div style="display:flex;gap:8px;justify-content:center">
       ${pendingPacks.map((pack,i)=>{
         const flags=[...new Set(pack.map(p=>p.flag))].slice(0,3);
         const newCount=pack.filter(p=>p.isNew).length;
-        return `<div onclick="choosePack(${i})" style="flex:1;background:rgba(124,58,237,.1);border:2px solid rgba(124,58,237,.3);border-radius:14px;padding:12px 8px;cursor:pointer;text-align:center;transition:all .2s;active:scale(.95)"
+        const hasGold=pack.some(p=>GOLD.has(p.name));
+        const hasStar=pack.some(p=>STARS.has(p.name));
+        const hint=hasGold?'👑':'';
+        return `<div onclick="choosePack(${i})" style="flex:1;background:rgba(124,58,237,.1);border:2px solid ${hasGold?'rgba(245,158,11,.5)':'rgba(124,58,237,.3)'};border-radius:14px;padding:12px 8px;cursor:pointer;text-align:center;transition:all .2s"
           onmouseover="this.style.borderColor='#a78bfa';this.style.background='rgba(124,58,237,.2)'"
-          onmouseout="this.style.borderColor='rgba(124,58,237,.3)';this.style.background='rgba(124,58,237,.1)'">
-          <div style="font-size:28px;margin-bottom:6px">📦</div>
-          <div style="font-size:16px;letter-spacing:2px;margin-bottom:8px">${flags.join(' ')}</div>
+          onmouseout="this.style.borderColor='${hasGold?'rgba(245,158,11,.5)':'rgba(124,58,237,.3)'}';this.style.background='rgba(124,58,237,.1)'">
+          <div style="font-size:28px;margin-bottom:6px">${hint||'📦'}</div>
+          <div style="font-size:16px;letter-spacing:2px;margin-bottom:6px">${flags.join(' ')}</div>
           <div style="font-size:9px;font-weight:800;color:#a78bfa">SOBRE ${i+1}</div>
-          <div style="font-size:8px;color:var(--t3);margin-top:2px">5 figus</div>
+          <div style="font-size:8px;color:${newCount>3?'#22c55e':'var(--t3)'};margin-top:2px">${newCount} nueva${newCount!==1?'s':''}</div>
         </div>`;
       }).join('')}
     </div>
