@@ -181,11 +181,85 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 }
 .star-card{box-shadow:0 0 0 2px #f59e0b,0 0 20px rgba(245,158,11,.6)!important;animation:starPulse .6s ease infinite alternate}
 @keyframes starPulse{from{box-shadow:0 0 0 2px #f59e0b,0 0 15px rgba(245,158,11,.5)}to{box-shadow:0 0 0 3px #fbbf24,0 0 30px rgba(251,191,36,.8)}}
+@keyframes trophySpin{0%{transform:perspective(700px) rotateY(-360deg) scale(.55);opacity:0}55%{transform:perspective(700px) rotateY(12deg) scale(1.06);opacity:1}72%{transform:perspective(700px) rotateY(-6deg) scale(.97)}86%{transform:perspective(700px) rotateY(3deg) scale(1.01)}100%{transform:perspective(700px) rotateY(0) scale(1);opacity:1}}
+@keyframes splashTextUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes splashOut{to{opacity:0;visibility:hidden}}
+@keyframes splashGlow{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+@keyframes confettiFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
+<!-- ─── SPLASH SCREEN ─── -->
+<div id="splash" onclick="dismissSplash()" style="position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;overflow:hidden;cursor:pointer;user-select:none">
+  <!-- Vibrant layered background -->
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 50% 0%,#1a0050 0%,#060018 55%,#000 100%)"></div>
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 80%,rgba(0,200,80,.18) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 80% 20%,rgba(0,100,255,.22) 0%,transparent 65%),radial-gradient(ellipse 50% 40% at 50% 50%,rgba(200,20,100,.12) 0%,transparent 70%)"></div>
+  <!-- Stars dots -->
+  <div style="position:absolute;inset:0;pointer-events:none" id="splash-stars"></div>
+  <!-- FIFA rainbow stripe top -->
+  <div style="position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#e40521,#f4901e,#f5c900,#009640,#0053a0,#7b2d8b,#e40521)"></div>
+  <!-- Trophy -->
+  <div style="position:relative;z-index:2;animation:trophySpin 2.6s cubic-bezier(.25,.46,.45,.94) both;margin-bottom:8px">
+    <div style="position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle,rgba(245,180,10,.35) 0%,transparent 70%);animation:splashGlow 2s 2.8s ease infinite"></div>
+    <svg viewBox="0 0 140 210" width="160" height="224" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="tG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef3a0"/><stop offset="25%" stop-color="#f5cc44"/><stop offset="55%" stop-color="#c8950a"/><stop offset="80%" stop-color="#f0c030"/><stop offset="100%" stop-color="#fef3a0"/></linearGradient>
+        <linearGradient id="tGd" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fef3a0"/><stop offset="50%" stop-color="#d4a210"/><stop offset="100%" stop-color="#8a6200"/></linearGradient>
+        <radialGradient id="globeG" cx="38%" cy="33%" r="70%"><stop offset="0%" stop-color="#60d4ff"/><stop offset="45%" stop-color="#0095d5"/><stop offset="100%" stop-color="#004a7c"/></radialGradient>
+        <radialGradient id="globeSh" cx="35%" cy="28%" r="55%"><stop offset="0%" stop-color="rgba(255,255,255,.65)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient>
+        <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <!-- Globe -->
+      <circle cx="70" cy="48" r="42" fill="url(#globeG)" filter="url(#glow)"/>
+      <!-- Continents simplified -->
+      <path d="M52,30 Q64,25 72,33 Q80,28 88,33 Q94,42 90,52 Q84,58 76,55 Q68,60 58,54 Q46,48 48,38 Z" fill="#1a9642" opacity=".88"/>
+      <path d="M36,44 Q42,38 50,41 Q53,48 48,54 Q41,56 37,51 Z" fill="#1a9642" opacity=".78"/>
+      <path d="M88,38 Q94,34 100,38 Q103,45 99,51 Q93,55 88,49 Z" fill="#1a9642" opacity=".78"/>
+      <path d="M58,18 Q65,14 72,18 Q76,24 72,28 Q65,30 60,26 Z" fill="#1a9642" opacity=".65"/>
+      <!-- Globe shine -->
+      <ellipse cx="54" cy="35" rx="20" ry="13" fill="url(#globeSh)"/>
+      <!-- Trophy ring around globe base -->
+      <ellipse cx="70" cy="89" rx="22" ry="5.5" fill="url(#tG)" opacity=".75"/>
+      <!-- Left figure (stylized) -->
+      <path d="M40,86 Q34,74 40,64 Q48,57 56,66 Q64,76 59,88 Q52,94 42,91 Z" fill="url(#tG)"/>
+      <!-- Right figure -->
+      <path d="M100,86 Q106,74 100,64 Q92,57 84,66 Q76,76 81,88 Q88,94 98,91 Z" fill="url(#tG)"/>
+      <!-- Arms holding globe -->
+      <path d="M40,70 Q52,60 62,53" stroke="url(#tG)" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <path d="M100,70 Q88,60 78,53" stroke="url(#tG)" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <!-- Stem -->
+      <path d="M58,89 Q60,104 63,114 L77,114 Q80,104 82,89 Z" fill="url(#tGd)"/>
+      <!-- Rings -->
+      <rect x="56" y="112" width="28" height="7" rx="2.5" fill="url(#tG)"/>
+      <rect x="50" y="119" width="40" height="9" rx="3" fill="url(#tG)"/>
+      <!-- Base layers -->
+      <path d="M42,128 L42,128 Q42,122 48,122 L92,122 Q98,122 98,128 L98,136 L40,136 Z" fill="url(#tG)"/>
+      <rect x="34" y="136" width="72" height="14" rx="5" fill="url(#tGd)"/>
+      <rect x="30" y="150" width="80" height="10" rx="5" fill="url(#tG)"/>
+      <!-- Base text lines -->
+      <rect x="40" y="154" width="60" height="2" rx="1" fill="rgba(80,40,0,.4)"/>
+      <rect x="46" y="158" width="48" height="1.5" rx="1" fill="rgba(80,40,0,.3)"/>
+      <!-- Shine on trophy body -->
+      <path d="M44,68 Q46,62 52,60 Q50,68 46,76 Z" fill="rgba(255,255,255,.25)"/>
+      <path d="M96,68 Q94,62 88,60 Q90,68 94,76 Z" fill="rgba(255,255,255,.15)"/>
+    </svg>
+  </div>
+  <!-- Text block -->
+  <div style="position:relative;z-index:2;text-align:center;animation:splashTextUp .8s 1.4s both">
+    <div style="font-size:9px;letter-spacing:7px;color:#22d3ee;font-weight:900;text-transform:uppercase;margin-bottom:6px;opacity:.9">FIFA</div>
+    <div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:3px;line-height:1;text-shadow:0 0 30px rgba(34,211,238,.55),0 2px 8px rgba(0,0,0,.8)">WORLD CUP</div>
+    <div style="font-size:52px;font-weight:900;line-height:1;background:linear-gradient(135deg,#f9e090,#f5cc44,#c8950a,#f5cc44,#f9e090);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 8px rgba(200,149,10,.6))">2026</div>
+    <div style="font-size:8.5px;letter-spacing:2.5px;color:rgba(255,255,255,.45);margin-top:6px;text-transform:uppercase">USA · CANADA · MEXICO</div>
+  </div>
+  <!-- Pulse tap hint -->
+  <div style="position:absolute;bottom:32px;left:0;right:0;text-align:center;z-index:2;animation:splashTextUp .8s 2.6s both">
+    <div style="font-size:10px;color:rgba(255,255,255,.4);letter-spacing:2px;animation:splashGlow 1.4s 3s ease infinite">· toca para continuar ·</div>
+  </div>
+  <!-- Bottom stripe -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#e40521,#f4901e,#f5c900,#009640,#0053a0,#7b2d8b,#e40521)"></div>
+</div>
 <div class="hdr">
   <div style="display:flex;align-items:center;gap:10px">
     <svg width="52" height="68" viewBox="0 0 680 335" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
@@ -1334,6 +1408,30 @@ function renderHdrJoin(){
   if(!me){el.innerHTML=`<button class="btn btn-p" style="font-size:11px;padding:6px 12px;border-radius:20px" onclick="openReg()">🏆 Unirse</button>`;}
   else{el.innerHTML=`<div style="display:flex;align-items:center;gap:6px"><div class="av a${G.p.findIndex(x=>x.id===me.id)%10}" style="width:28px;height:28px;font-size:12px">${me.emoji||me.name[0]}</div><span style="font-size:11px;font-weight:800;color:var(--t1)">${me.name}</span></div>`;}
 }
+// ─── SPLASH ───
+function dismissSplash(){
+  const s=document.getElementById('splash');
+  if(!s||s.dataset.gone)return;
+  s.dataset.gone='1';
+  s.style.animation='splashOut .55s ease forwards';
+  setTimeout(()=>{s.style.display='none';},560);
+}
+(function initSplash(){
+  // Scatter star dots in background
+  const sc=document.getElementById('splash-stars');
+  if(sc){
+    for(let i=0;i<55;i++){
+      const d=document.createElement('div');
+      const sz=Math.random()<.2?2.5:Math.random()<.5?1.5:1;
+      const delay=(Math.random()*3).toFixed(2);
+      const dur=(2+Math.random()*3).toFixed(2);
+      d.style.cssText=`position:absolute;border-radius:50%;background:#fff;width:${sz}px;height:${sz}px;left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*100).toFixed(1)}%;opacity:${(.2+Math.random()*.7).toFixed(2)};animation:splashGlow ${dur}s ${delay}s ease infinite`;
+      sc.appendChild(d);
+    }
+  }
+  // Auto-dismiss after 4.2 s
+  setTimeout(dismissSplash,4200);
+})();
 // INIT
 loadG();renderLB();renderHdrJoin();startAutoRefresh();
 const PHOTOS={
