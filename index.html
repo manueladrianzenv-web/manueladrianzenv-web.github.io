@@ -702,7 +702,16 @@ function loadG(){
   if(!G.goles||G.goles.length<10){G.goles=GOLES_INIT.map(g=>({...g}));}
   const _eIds=new Set(G.m.map(m=>m.id));
   const _toAdd=PRESET.map((m,i)=>({pen:null,firstScorer:null,halfGoal:null,...m,id:'p'+i,rg1:'rg1' in m?m.rg1:null,rg2:'rg2' in m?m.rg2:null})).filter(m=>!_eIds.has(m.id));
-  if(_toAdd.length){G.m=[...G.m,..._toAdd];saveG();}
+  if(_toAdd.length){G.m=[...G.m,..._toAdd];}
+  // Sync results from PRESET into existing stored matches (PRESET is source of truth for scores)
+  let _changed=false;
+  PRESET.forEach((pm,i)=>{
+    if(pm.rg1==null&&pm.rg2==null)return; // no result in code, skip
+    const stored=G.m.find(m=>m.id==='p'+i);
+    if(!stored)return;
+    if(stored.rg1!==pm.rg1||stored.rg2!==pm.rg2){stored.rg1=pm.rg1;stored.rg2=pm.rg2;_changed=true;}
+  });
+  if(_changed||_toAdd.length)saveG();
   try{const u=localStorage.getItem('cod26-me');if(u){const p=JSON.parse(u);if(p&&G.p.find(x=>x.id===p.id))me=p;}}catch(e){}
 }
 
