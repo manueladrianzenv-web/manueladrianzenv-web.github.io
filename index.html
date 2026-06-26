@@ -1711,7 +1711,7 @@ function generateDailyRepos(){
   return [sh.slice(0,10),sh.slice(10,20),sh.slice(20,30)];
 }
 function checkDailyRepos(){
-  if(!isKnockoutPhase())return;
+  if(!isOctavosPhase())return;
   const today=new Date().toISOString().slice(0,10);
   if(!AL.repos||AL.repos.date!==today){
     AL.repos={date:today,options:generateDailyRepos(),chosen:null,swapsUsed:0};
@@ -1721,7 +1721,7 @@ function checkDailyRepos(){
 function renderRepos(){
   const el=document.getElementById('al-repos');
   if(!el)return;
-  if(!isKnockoutPhase()){el.innerHTML='';return;}
+  if(!isOctavosPhase()){el.innerHTML='';return;}
   if(!AL.repos)return;
   const {options,chosen,swapsUsed}=AL.repos;
   const swapsLeft=REPO_MAX_SWAPS-swapsUsed;
@@ -2065,6 +2065,15 @@ function isKnockoutPhase(){
   if(firstR16?.date&&new Date(firstR16.date)<=new Date())return true;
   return false;
 }
+// Returns true from octavos (Round of 16) onwards: once all 16avos matches are played.
+function isOctavosPhase(){
+  const ms=G.m||[];
+  const r16=ms.filter(m=>m.round==='16avos');
+  if(r16.length>=16&&r16.every(m=>m.rg1!=null&&m.rg2!=null))return true;
+  const firstOct=ms.find(m=>m.round==='octavos'||m.round==='8avos');
+  if(firstOct?.date&&new Date(firstOct.date)<=new Date())return true;
+  return false;
+}
 // Resolve a Wikipedia article title from a player name.
 // Returns null if the name looks like an abbreviation (e.g. "L. Messi") and has no mapping.
 function wikiTitle(name){
@@ -2399,9 +2408,10 @@ function updateAlStats(){
   if(e('al-packs-n'))e('al-packs-n').textContent=AL.packs;
   if(e('al-open-btn'))e('al-open-btn').disabled=AL.packs<1;
   const used=AL.packsToday||0;
-  if(e('daily-used'))e('daily-used').textContent=used+' / '+DAILY_LIMIT;
-  if(e('daily-bar'))e('daily-bar').style.width=Math.min(100,used/DAILY_LIMIT*100)+'%';
-  if(e('daily-limit-label'))e('daily-limit-label').textContent=DAILY_LIMIT+' sobres gratis por día';
+  const lim=getDailyLimit();
+  if(e('daily-used'))e('daily-used').textContent=used+' / '+lim;
+  if(e('daily-bar'))e('daily-bar').style.width=Math.min(100,used/lim*100)+'%';
+  if(e('daily-limit-label'))e('daily-limit-label').textContent=lim+' sobres gratis por día';
 }
 function hexR(hex){return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`; }
 // ─── 3-PACK PICKER ───
@@ -2425,26 +2435,28 @@ function generateOnePack(){
   }
   return cards;
 }
-const DAILY_LIMIT=100;
+// Dynamic daily limit: 100 during group stage, 20 from 16avos onwards
+function getDailyLimit(){return isKnockoutPhase()?20:100;}
 function checkDailyRefill(){
+  const lim=getDailyLimit();
   const today=new Date().toISOString().slice(0,10);
   if(AL.lastPackDay!==today){
     AL.lastPackDay=today;
     AL.packsToday=0;
-    // Daily refill: give 10 packs if they have less than 10
-    if((AL.packs||0)<DAILY_LIMIT){
-      const toAdd=DAILY_LIMIT-(AL.packs||0);
+    if((AL.packs||0)<lim){
+      const toAdd=lim-(AL.packs||0);
       AL.packs=(AL.packs||0)+toAdd;
       saveAL();
-      if(toAdd>0)showT('¡Tus '+DAILY_LIMIT+' sobres diarios ya están disponibles! +'+toAdd+' sobres 🎁');
+      if(toAdd>0)showT('¡Tus '+lim+' sobres diarios ya están disponibles! +'+toAdd+' sobres 🎁');
     }
     saveAL();
   }
 }
 function openPack(){
   checkDailyRefill();
-  if(AL.packs<1){showT('Sin sobres. Volvé mañana para tus '+DAILY_LIMIT+' gratis 🎁','err');return;}
-  if((AL.packsToday||0)>=DAILY_LIMIT){showT('Límite diario alcanzado ('+DAILY_LIMIT+' sobres/día). Volvé mañana 🌙','err');return;}
+  const lim=getDailyLimit();
+  if(AL.packs<1){showT('Sin sobres. Volvé mañana para tus '+lim+' gratis 🎁','err');return;}
+  if((AL.packsToday||0)>=lim){showT('Límite diario alcanzado ('+lim+' sobres/día). Volvé mañana 🌙','err');return;}
   if(document.getElementById('al-reveal').style.display!=='none'){showT('Guardá el sobre actual primero','err');return;}
   // Generate 3 packs to choose from
   pendingPacks=[generateOnePack(),generateOnePack(),generateOnePack()];
