@@ -2725,6 +2725,8 @@ function startFirebaseSync(){
     fbReady=true;
     hideFbLoading();
     renderLB();renderPR();
+    initMatchNotifications();
+    autoFetchResults();
     fbRef.on('value',snap2=>{
       const d=snap2.val();
       if(d&&fbReady){
@@ -2741,6 +2743,7 @@ function startFirebaseSync(){
         const seen={};G.p=G.p.filter(p=>{const k=p.name.toLowerCase();if(seen[k])return false;seen[k]=true;return true;});
         if(oldMe)me=G.p.find(x=>x.id===oldMe.id)||null;
         const _golesFixed=!d.goles||d.goles.length<10;if(_added2||_golesFixed||_fixed2)saveG();
+        scheduleMatchAlerts();
         renderLB();
         const activeTab=document.querySelector('.nb.on')?.id?.replace('nb-','');
         const revealOpen=document.getElementById('al-reveal')?.style.display!=='none';
@@ -2764,6 +2767,100 @@ function saveG(){
   }else{
     localStorage.setItem('cod26',JSON.stringify(G));
   }
+}
+
+// ─── AUTO-RESULTS: ESPN API polling ───────────────────────────────────────────
+const ESPN_TO_PRESET={
+  'France':'Francia','Norway':'Noruega','Iraq':'Irak','Senegal':'Senegal',
+  'Spain':'España','Uruguay':'Uruguay','Saudi Arabia':'Arabia Saudita','Cape Verde':'Cabo Verde',
+  'Belgium':'Bélgica','New Zealand':'Nueva Zelanda','Iran':'Irán','Egypt':'Egipto',
+  'England':'Inglaterra','Panama':'Panamá','Ghana':'Ghana','Croatia':'Croacia',
+  'Portugal':'Portugal','Colombia':'Colombia','Uzbekistan':'Uzbekistán',
+  'DR Congo':'R.D. Congo','Congo DR':'R.D. Congo','Democratic Republic of Congo':'R.D. Congo',
+  'Argentina':'Argentina','Jordan':'Jordania','Algeria':'Argelia','Austria':'Austria',
+  'Mexico':'México','South Africa':'Sudáfrica','Switzerland':'Suiza','Canada':'Canadá',
+  'Brazil':'Brasil','Morocco':'Marruecos','United States':'USA','USA':'USA',
+  'Turkey':'Turquía','Türkiye':'Turquía','Germany':'Alemania',
+  "Côte d'Ivoire":'Costa de Marfil',"Ivory Coast":'Costa de Marfil',
+  'Netherlands':'Países Bajos','Japan':'Japón','Korea Republic':'Corea del Sur',
+  'South Korea':'Corea del Sur','Czechia':'Chequia','Czech Republic':'Chequia',
+  'Australia':'Australia','Paraguay':'Paraguay','Ecuador':'Ecuador',
+  'Curaçao':'Curazao','Curacao':'Curazao','Sweden':'Suecia','Tunisia':'Túnez',
+  'Haiti':'Haití','Scotland':'Escocia','Qatar':'Qatar',
+  'Bosnia and Herzegovina':'Bosnia','New Zealand':'Nueva Zelanda',
+};
+let _autoResultTimer=null;
+async function autoFetchResults(){
+  const now=new Date();
+  const pending=(G.m||[]).filter(m=>{
+    if(m.rg1!=null&&m.rg2!=null)return false;
+    if(!m.date)return false;
+    const t=new Date(m.date);
+    const mins=(now-t)/60000;
+    return mins>=-10&&mins<=180; // desde 10min antes hasta 3h después del inicio
+  });
+  if(pending.length>0){
+    try{
+      const res=await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard');
+      const data=await res.json();
+      let changed=false;
+      (data.events||[]).forEach(ev=>{
+        if(ev.status?.type?.name!=='STATUS_FINAL')return;
+        const comp=ev.competitions?.[0];
+        if(!comp)return;
+        const hc=comp.competitors?.find(c=>c.homeAway==='home');
+        const ac=comp.competitors?.find(c=>c.homeAway==='away');
+        if(!hc||!ac)return;
+        const hn=ESPN_TO_PRESET[hc.team?.displayName]||hc.team?.displayName;
+        const an=ESPN_TO_PRESET[ac.team?.displayName]||ac.team?.displayName;
+        const hs=parseInt(hc.score),as2=parseInt(ac.score);
+        if(isNaN(hs)||isNaN(as2))return;
+        const match=(G.m||[]).find(m=>{
+          if(m.rg1!=null&&m.rg2!=null)return false;
+          return(m.t1===hn&&m.t2===an)||(m.t1===an&&m.t2===hn);
+        });
+        if(!match)return;
+        if(match.t1===hn){match.rg1=hs;match.rg2=as2;}
+        else{match.rg1=as2;match.rg2=hs;}
+        changed=true;
+        console.log('⚽ Auto-resultado:',match.t1,match.rg1+'-'+match.rg2,match.t2);
+      });
+      if(changed){saveG();renderLB();renderPR();showT('⚽ Resultado actualizado automáticamente');}
+    }catch(e){console.warn('autoFetchResults error:',e);}
+  }
+  _autoResultTimer=setTimeout(autoFetchResults,3*60*1000); // cada 3 minutos
+}
+
+// ─── NOTIFICACIONES: alerta 15 min antes ──────────────────────────────────────
+const _notifScheduled=new Set();
+function initMatchNotifications(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{if(p==='granted')scheduleMatchAlerts();});
+  } else if(Notification.permission==='granted'){
+    scheduleMatchAlerts();
+  }
+}
+function scheduleMatchAlerts(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const now=new Date();
+  (G.m||[]).forEach(m=>{
+    if((m.rg1!=null&&m.rg2!=null)||!m.date)return;
+    const matchTime=new Date(m.date);
+    const alertAt=matchTime.getTime()-15*60*1000;
+    const delay=alertAt-now.getTime();
+    if(delay<0||_notifScheduled.has(m.id))return;
+    _notifScheduled.add(m.id);
+    setTimeout(()=>{
+      if(Notification.permission!=='granted')return;
+      const rnd=m.round==='grupos'?'Grupo '+(m.group||''):RND_N[m.round]||m.round;
+      new Notification('⚽ ¡Faltan 15 minutos!',{
+        body:m.f1+' '+m.t1+'  vs  '+m.f2+' '+m.t2+'\n'+rnd,
+        tag:'alert-'+m.id,
+        requireInteraction:false
+      });
+    },delay);
+  });
 }
 // Login functions
 function openLoginModal(){
