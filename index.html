@@ -1732,10 +1732,10 @@ function renderAlbumRanking(){
     </div>
   </div>`;
   const existing=document.getElementById('al-stats-block');
-  if(existing)existing.outerHTML=statsHtml;
+  if(existing)existing.outerHTML='<div id="al-stats-block">'+statsHtml.trim()+'</div>';
   else{
     const reveal=document.getElementById('al-reveal');
-    if(reveal)reveal.insertAdjacentHTML('afterend','<div id="al-stats-block">'+statsHtml.slice(statsHtml.indexOf('<div'),statsHtml.lastIndexOf('</div>')+6)+'</div>');
+    if(reveal)reveal.insertAdjacentHTML('afterend','<div id="al-stats-block">'+statsHtml.trim()+'</div>');
   }
 }
 // ─── ÁLBUM JUGADORES 2026 ───
@@ -1986,11 +1986,16 @@ function smartPickUncol(uncol){
 function earnPack(){AL.packs++;saveAL();showT('🎁 ¡Sobre agregado!');updateAlStats();}
 function closeReveal(){document.getElementById('al-reveal').style.display='none';renderAlbumGrid();renderDuplicates();renderAlbumRanking();}
 function showReveal(cards){
-  const rev=document.getElementById('al-reveal');rev.style.display='block';
+  if(!cards||!cards.length)return;
+  const rev=document.getElementById('al-reveal');
+  const cardsEl=document.getElementById('al-cards');
+  if(!rev||!cardsEl)return;
+  cardsEl.innerHTML='';       // clear before showing to avoid stale flicker
+  rev.style.display='block';
   const posL={G:'🧤 Portero',D:'🛡️ Defensa',M:'⚙️ Mediocampista',F:'⚡ Delantero'};
   const posC={G:'#f59e0b',D:'#3b82f6',M:'#22c55e',F:'#ef4444'};
   let hasStars=false;
-  document.getElementById('al-cards').innerHTML=cards.map((p,i)=>{
+  cardsEl.innerHTML=cards.map((p,i)=>{
     const isStar=STARS.has(p.name);
     const isGold=GOLD.has(p.name);
     const isTit=TITULARES.has(p.name);
@@ -2611,7 +2616,9 @@ function startFirebaseSync(){
         const _golesFixed=!d.goles||d.goles.length<10;if(_added2||_golesFixed||_fixed2)saveG();
         renderLB();
         const activeTab=document.querySelector('.nb.on')?.id?.replace('nb-','');
-        if(activeTab&&activeTab!=='lb')({mx:renderMX,pr:renderPR,fi:renderFichaScreen,ad:renderAd,al:renderAlbum}[activeTab])?.();
+        const revealOpen=document.getElementById('al-reveal')?.style.display!=='none';
+        if(activeTab&&activeTab!=='lb'&&!(activeTab==='al'&&revealOpen))
+          ({mx:renderMX,pr:renderPR,fi:renderFichaScreen,ad:renderAd,al:renderAlbum}[activeTab])?.();
       }
     });
   }).catch(e=>{
