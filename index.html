@@ -1315,19 +1315,24 @@ function renderPR(){
   uz.innerHTML=`<div class="uchip"><div class="av a${idx<0?0:idx%10}" style="width:36px;height:36px">${me.emoji||me.name[0]}</div><div style="flex:1"><div style="font-size:13px;font-weight:800;color:#fff">${me.name}</div><div style="font-size:9px;color:var(--t3);margin-top:1px">⚽ ${t.pts} pts · ✅ ${t.ok} aciertos</div></div><button class="swbtn" onclick="swUser()">Cambiar</button></div>`;
   renderPRBody(me.id);
 }
+function toggleHist(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 function renderPRBody(pid){
   if(!G.m.length){document.getElementById('pr-body').innerHTML=`<div class="empty"><div class="ei">📅</div><p style="font-size:12px;color:var(--t3)">El admin aún no cargó partidos</p></div>`;return;}
   let html='';
   const {qualTop2:_qt2,qualThirds:_qt3}=getQualifiedTeams(calcGroupStandings());
   const _qual=new Set([..._qt2,..._qt3]);
   const rp=RND_ORD.filter(r=>G.m.some(m=>m.round===r));
-  rp.forEach(rnd=>{
+  // Split rounds: those with open matches go first, fully-done rounds go to history
+  const openRnds=rp.filter(r=>G.m.some(m=>m.round===r&&!done(m)&&!locked(m)));
+  const lockedRnds=rp.filter(r=>!openRnds.includes(r)&&G.m.some(m=>m.round===r&&!done(m)&&locked(m)));
+  const doneRnds=rp.filter(r=>!openRnds.includes(r)&&!lockedRnds.includes(r));
+  // 1. OPEN predictions (most important — shown first)
+  openRnds.forEach(rnd=>{
     const isGrp=rnd==='grupos';
     const ql=isGrp?_qual:null;
     const rms=G.m.filter(m=>m.round===rnd);
     const dm=rms.filter(done),om=rms.filter(m=>!done(m)&&!locked(m)),lm=rms.filter(m=>!done(m)&&locked(m));
     html+=`<div class="ph"><div class="phl">${RND_N[rnd]}</div><div class="phc">${dm.length}/${rms.length} jugados</div><div class="phln"></div></div>`;
-    if(dm.length){html+=`<div class="slbl">✅ Resultados</div>`;html+=dm.map(m=>mcHtml(m,pid,false,ql)).join('');}
     if(om.length){
       if(isGrp){
         const byGrp={};om.forEach(m=>{const g=m.group||'?';if(!byGrp[g])byGrp[g]=[];byGrp[g].push(m);});
@@ -1346,7 +1351,31 @@ function renderPRBody(pid){
       }
     }
     if(lm.length){html+=`<div class="slbl">🔒 En curso · Cerrados</div>`;html+=lm.map(m=>mcHtml(m,pid,false,ql)).join('');}
+    if(dm.length){
+      const hid='hist-'+rnd;
+      html+=`<button onclick="toggleHist('${hid}')" style="width:100%;text-align:left;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:10px;padding:8px 12px;color:var(--t3);font-size:11px;font-weight:700;display:flex;justify-content:space-between;cursor:pointer;margin-bottom:6px"><span>✅ Ver ${dm.length} resultados anteriores</span><span>▾</span></button><div id="${hid}" style="display:none">${dm.map(m=>mcHtml(m,pid,false,ql)).join('')}</div>`;
+    }
   });
+  // 2. LOCKED rounds (in progress, no inputs)
+  lockedRnds.forEach(rnd=>{
+    const ql=rnd==='grupos'?_qual:null;
+    const rms=G.m.filter(m=>m.round===rnd);
+    const dm=rms.filter(done),lm=rms.filter(m=>!done(m)&&locked(m));
+    html+=`<div class="ph"><div class="phl">${RND_N[rnd]}</div><div class="phc">${dm.length}/${rms.length} jugados</div><div class="phln"></div></div>`;
+    if(lm.length){html+=`<div class="slbl">🔒 En curso · Cerrados</div>`;html+=lm.map(m=>mcHtml(m,pid,false,ql)).join('');}
+    if(dm.length){html+=`<div class="slbl">✅ Resultados</div>`;html+=dm.map(m=>mcHtml(m,pid,false,ql)).join('');}
+  });
+  // 3. HISTORY (all done — collapsible)
+  if(doneRnds.length){
+    html+=`<div class="ph" style="margin-top:4px"><div class="phl" style="color:var(--t4)">📋 Historial</div><div class="phln"></div></div>`;
+    doneRnds.forEach(rnd=>{
+      const ql=rnd==='grupos'?_qual:null;
+      const dm=G.m.filter(m=>m.round===rnd&&done(m));
+      const hid='hist-'+rnd;
+      html+=`<button onclick="toggleHist('${hid}')" style="width:100%;text-align:left;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:10px;padding:9px 13px;color:var(--t2);font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:6px"><span>${RND_N[rnd]}</span><span style="font-size:10px;color:var(--t4)">${dm.length} resultados ▾</span></button><div id="${hid}" style="display:none">${dm.map(m=>mcHtml(m,pid,false,ql)).join('')}</div>`;
+    });
+  }
+  // 4. NEXT phases placeholder
   const nextR=RND_ORD.filter(r=>!G.m.some(m=>m.round===r)&&rp.length>0&&RND_ORD.indexOf(r)>Math.max(...rp.map(r2=>RND_ORD.indexOf(r2))));
   if(nextR.length){html+=`<div class="ph"><div class="phl" style="color:var(--t4)">Próximas fases</div><div class="phln"></div></div>`;html+=nextR.slice(0,2).map(r=>`<div class="mcard" style="opacity:.35;border-color:rgba(0,0,0,.06)"><div class="mchdr"><span class="mcphase" style="color:var(--t4)">${RND_N[r]}</span><span class="badge b-next">Próxima</span></div><div style="text-align:center;font-size:11px;color:var(--t4);padding:16px">El admin cargará los partidos cuando se conozcan los clasificados</div></div>`).join('');}
   document.getElementById('pr-body').innerHTML=html||`<div class="empty"><div class="ei">🏁</div></div>`;
