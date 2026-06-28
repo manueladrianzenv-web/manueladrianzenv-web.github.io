@@ -734,10 +734,15 @@ function saveMe(){localStorage.setItem('cod26-me',me?JSON.stringify(me):'null');
 function won(a,b){return +a>+b?'t1':+b>+a?'t2':'d';}
 function done(m){return m.rg1!==null&&m.rg1!==undefined&&m.rg1!=='';}
 // Parse date string as Colombia/Peru time (UTC-5) regardless of browser timezone
-function parsePD(ds){if(!ds)return null;return new Date(ds+'-05:00');}
-function locked(m){return m.date&&Date.now()>=parsePD(m.date);}
+function parsePD(ds){
+  if(!ds)return new Date(0);
+  const dp=ds.slice(0,10),tp=ds.length>10?ds.slice(11,16):'00:00';
+  const [y,mo,d]=dp.split('-').map(Number),[h,mi]=tp.split(':').map(Number);
+  return new Date(Date.UTC(y,mo-1,d,h+5,mi||0));
+}
+function locked(m){return m.date&&Date.now()>=parsePD(m.date).getTime();}
 function tl(m){
-  if(!m.date)return null;const d=parsePD(m.date)-Date.now();if(d<=0)return null;
+  if(!m.date)return null;const d=parsePD(m.date).getTime()-Date.now();if(d<=0)return null;
   const h=Math.floor(d/3600000),mn=Math.floor((d%3600000)/60000),s=Math.floor((d%60000)/1000);
   if(h>=24)return Math.floor(h/24)+'d '+(h%24)+'h';
   if(h>0)return h+'h '+mn+'m';if(mn>0)return mn+'m '+s+'s';return s+'s';
@@ -745,7 +750,7 @@ function tl(m){
 // Returns {text, cls} for the large countdown bar — MM:SS in last hour
 function cdFmt(m){
   if(!m.date)return null;
-  const d=parsePD(m.date)-Date.now();
+  const d=parsePD(m.date).getTime()-Date.now();
   if(d<=0)return null;
   const h=Math.floor(d/3600000),mn=Math.floor((d%3600000)/60000),s=Math.floor((d%60000)/1000);
   let text,cls='';
@@ -757,7 +762,7 @@ function cdFmt(m){
   else if(d<3600000&&cls==='')cls='cd-hot';
   return{text,cls};
 }
-function hot(m){if(!m.date)return false;const d=parsePD(m.date)-Date.now();return d>0&&d<3600000;}
+function hot(m){if(!m.date)return false;const d=parsePD(m.date).getTime()-Date.now();return d>0&&d<3600000;}
 function calcPts(m,pred){
   if(!done(m)||!pred||pred.g1===undefined||pred.g1===null)return null;
   const rv=won(m.rg1,m.rg2),pv=won(pred.g1,pred.g2),rp=RND_PTS[m.round]||2;
