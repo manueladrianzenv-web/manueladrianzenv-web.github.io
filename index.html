@@ -617,7 +617,7 @@ const PRESET=[
   // ═══ 16AVOS DE FINAL (p72-p87) – Cuadro oficial FIFA ═══
   // M73: 2°A vs 2°B – LA
   // M73: 2°A vs 2°B – SoFi LA – Jun 28 3pm ET
-  {round:'16avos',f1:'🇿🇦',t1:'Sudáfrica',f2:'🇨🇦',t2:'Canadá',date:'2026-06-28T14:00',rg1:0,rg2:1},
+  {round:'16avos',f1:'🇿🇦',t1:'Sudáfrica',f2:'🇨🇦',t2:'Canadá',date:'2026-06-28T14:00',rg1:0,rg2:1,firstScorer:'S. Eustáquio',halfGoal:false},
   // M74: 1°E vs Mejor 3° – Gillette Boston – Jun 28 4:30pm ET
   {round:'16avos',f1:'🇩🇪',t1:'Alemania',f2:'🇵🇾',t2:'Paraguay',date:'2026-06-28T15:30'},
   // M75: 1°F vs 2°C – Monterrey – Jun 28 9pm ET
@@ -1568,7 +1568,9 @@ function renderPRBody(pid){
     if(lm.length){html+=`<div class="slbl">🔒 En curso · Cerrados</div>`;html+=lm.map(m=>mcHtml(m,pid,false,ql)).join('');}
     if(dm.length){
       const hid='hist-'+rnd;
-      html+=`<button onclick="toggleHist('${hid}')" style="width:100%;text-align:left;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:10px;padding:8px 12px;color:var(--t3);font-size:11px;font-weight:700;display:flex;justify-content:space-between;cursor:pointer;margin-bottom:6px"><span>✅ Ver ${dm.length} resultados anteriores</span><span>▾</span></button><div id="${hid}" style="display:none">${dm.map(m=>mcHtml(m,pid,false,ql)).join('')}</div>`;
+      // Knockout rounds: show results expanded by default so users see their score immediately
+      const initOpen=rnd!=='grupos';
+      html+=`<button onclick="toggleHist('${hid}')" style="width:100%;text-align:left;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:10px;padding:8px 12px;color:var(--t3);font-size:11px;font-weight:700;display:flex;justify-content:space-between;cursor:pointer;margin-bottom:6px"><span>✅ ${dm.length} resultado${dm.length>1?'s':''} · Puntaje parcial</span><span>${initOpen?'▴':'▾'}</span></button><div id="${hid}" style="display:${initOpen?'block':'none'}">${dm.map(m=>mcHtml(m,pid,false,ql)).join('')}</div>`;
     }
   });
   // 2. LOCKED rounds (in progress, no inputs)
@@ -2988,9 +2990,11 @@ function _fixPresetErrors(){
     ['f1','t1','f2','t2','round','group','date'].forEach(k=>{
       if(pm[k]!=null&&stored[k]!==pm[k]){stored[k]=pm[k];changed=true;}
     });
-    // Only fill scores when not yet set (don't overwrite manually-entered results)
+    // Only fill scores/metadata when not yet set (don't overwrite manually-entered results)
     if(pm.rg1!=null&&stored.rg1==null){stored.rg1=pm.rg1;changed=true;}
     if(pm.rg2!=null&&stored.rg2==null){stored.rg2=pm.rg2;changed=true;}
+    if(pm.firstScorer!=null&&stored.firstScorer==null){stored.firstScorer=pm.firstScorer;changed=true;}
+    if(pm.halfGoal!=null&&stored.halfGoal==null){stored.halfGoal=pm.halfGoal;changed=true;}
   });
   return changed;
 }
