@@ -617,7 +617,7 @@ const PRESET=[
   // ═══ 16AVOS DE FINAL (p72-p87) – Cuadro oficial FIFA ═══
   // M73: 2°A vs 2°B – LA
   // M73: 2°A vs 2°B – SoFi LA – Jun 28 3pm ET
-  {round:'16avos',f1:'🇿🇦',t1:'Sudáfrica',f2:'🇨🇦',t2:'Canadá',date:'2026-06-28T14:00',rg1:0,rg2:1,firstScorer:'S. Eustáquio',halfGoal:false},
+  {round:'16avos',f1:'🇿🇦',t1:'Sudáfrica',f2:'🇨🇦',t2:'Canadá',date:'2026-06-28T14:00',rg1:0,rg2:1,firstScorer:'S. Eustáquio',halfGoal:false,goalMinute:"90+2'"},
   // M74: 1°E vs Mejor 3° – Gillette Boston – Jun 28 4:30pm ET
   {round:'16avos',f1:'🇩🇪',t1:'Alemania',f2:'🇵🇾',t2:'Paraguay',date:'2026-06-29T15:30'},
   // M75: 1°F vs 2°C – Monterrey – Jun 28 9pm ET
@@ -1432,8 +1432,16 @@ function mcHtml(m,pid,editable,qual){
       const scOk=m.firstScorer&&pred?.scorer&&pred.scorer.trim().toLowerCase()===m.firstScorer.trim().toLowerCase();
       const hfOk=m.halfGoal!==null&&m.halfGoal!==undefined&&pred?.halfGoal===m.halfGoal;
       let out='<div class="extras">';
+      // Goal summary banner
+      if(m.firstScorer!=null){
+        const min=m.goalMinute?` ${m.goalMinute}`:'';
+        const scorerTxt=m.firstScorer?`⚽ <strong>${m.firstScorer}</strong>${min}`:'Sin goles';
+        out+=`<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:11px;color:#6ee7b7;text-align:center">${scorerTxt}</div>`;
+      }
       if(m.firstScorer!==null&&m.firstScorer!==undefined)out+=`<div class="xrow"><span class="xlbl">⚽ 1er goleador:</span><span style="flex:1;font-size:11px;color:var(--t1);font-weight:600">${m.firstScorer||'Sin goles'}</span>${pred?.scorer!==undefined?`<span class="rtag ${scOk?'rt-ok':'rt-no'}">${scOk?'✅ +1':'❌ '+pred.scorer}</span>`:'<span class="rtag rt-na">Sin pred.</span>'}</div>`;
       if(m.halfGoal!==null&&m.halfGoal!==undefined)out+=`<div class="xrow"><span class="xlbl">🕐 Gol 1er T:</span><span style="flex:1;font-size:11px;color:var(--t1);font-weight:600">${m.halfGoal?'Sí hubo':'No hubo'}</span>${pred?.halfGoal!==undefined?`<span class="rtag ${hfOk?'rt-ok':'rt-no'}">${hfOk?'✅ +1':'❌ pred '+(pred.halfGoal?'Sí':'No')}</span>`:'<span class="rtag rt-na">Sin pred.</span>'}</div>`;
+      // Points breakdown in card
+      if(r){out+=`<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.07)">${r.bd.map(b=>`<div style="display:flex;justify-content:space-between;font-size:10px;color:${b.ok?'#6ee7b7':'var(--t4)'};padding:1px 0"><span>${b.ok?'✅':'❌'} ${b.l}</span><span style="font-weight:800">${b.p>0?'+'+b.p:'0'} pt${b.p!==1?'s':''}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:900;color:${r.pts>0?'#a78bfa':'var(--t3)'};margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.07)"><span>TOTAL</span><span>+${r.pts} pts</span></div></div>`;}
       return out+'</div>';
     }
     if(editable&&!lk)return`<div class="extras"><div class="xrow"><span class="xlbl">⚽ 1er goleador:</span><input type="text" class="xin" id="sc-${m.id}" placeholder="Nombre del jugador..." value="${pred?.scorer||''}" oninput="onSc('${pid}','${m.id}')"><span class="xtag">+1</span></div><div class="xrow"><span class="xlbl">🕐 Gol 1er tiempo:</span><div class="hbtns"><button class="hbtn ${pred?.halfGoal===true?'on':''}" id="hb-y-${m.id}" onclick="setHalf('${pid}','${m.id}',true)">Sí</button><button class="hbtn ${pred?.halfGoal===false?'on':''}" id="hb-n-${m.id}" onclick="setHalf('${pid}','${m.id}',false)">No</button></div><span class="xtag">+1</span></div></div>`;
@@ -2995,6 +3003,7 @@ function _fixPresetErrors(){
     if(pm.rg2!=null&&stored.rg2==null){stored.rg2=pm.rg2;changed=true;}
     if(pm.firstScorer!=null&&stored.firstScorer==null){stored.firstScorer=pm.firstScorer;changed=true;}
     if(pm.halfGoal!=null&&stored.halfGoal==null){stored.halfGoal=pm.halfGoal;changed=true;}
+    if(pm.goalMinute!=null&&stored.goalMinute==null){stored.goalMinute=pm.goalMinute;changed=true;}
   });
   return changed;
 }
