@@ -2504,7 +2504,8 @@ function showReveal(cards){
 let alCurGroup='ALL';
 let alMode='album'; // 'album' | 'xi'
 function buildAlTabs(){
-  const gs=['ALL','A','B','C','D','E','F','G','H','I','J','K','L'];
+  const qualGroups=[...new Set(AL_PLAYERS.map(p=>p.group))].sort();
+  const gs=['ALL',...qualGroups];
   const modeBtns=`<button class="rtab${alMode==='album'?' on':''}" onclick="switchAlMode('album')">🃏 Álbum</button><button class="rtab${alMode==='xi'?' on':''}" onclick="switchAlMode('xi')">⚽ XI Titular</button>`;
   const groupBtns=gs.map(g=>`<button class="rtab${alCurGroup===g?' on':''}" onclick="switchAlG(event,'${g}')">${g==='ALL'?'Todo':'G '+g}</button>`).join('');
   document.getElementById('al-tabs').innerHTML=modeBtns+'<span style="display:inline-block;width:1px;height:20px;background:rgba(255,255,255,.15);margin:0 4px;vertical-align:middle"></span>'+groupBtns;
@@ -2533,7 +2534,7 @@ function renderXIView(){
   const posC={G:'#f59e0b',D:'#3b82f6',M:'#22c55e',F:'#ef4444'};
   const posGrad={G:'linear-gradient(160deg,#78350f,#92400e)',D:'linear-gradient(160deg,#1e3a5f,#1e40af)',M:'linear-gradient(160deg,#14532d,#166534)',F:'linear-gradient(160deg,#7f1d1d,#991b1b)'};
   const posLabel={G:'GK',D:'DEF',M:'MID',F:'ST'};
-  const entries=Object.entries(SQUADS).filter(([c,[f,g]])=>alCurGroup==="ALL"||g===alCurGroup);
+  const entries=Object.entries(SQUADS).filter(([c,[f,g]])=>QUALIFIED_TEAMS.has(c)&&(alCurGroup==="ALL"||g===alCurGroup));
   const mkCard=(country,flag,skin,name,pos,idx,w)=>{
     const id=`${country}_${idx}`,has=AL.col[id];
     const pc=posC[pos],pg=posGrad[pos];
@@ -2612,7 +2613,7 @@ function renderAlbumGrid(){
     F:'linear-gradient(160deg,#7f1d1d,#991b1b)'
   };
   const posLabel={G:'GK',D:'DEF',M:'MID',F:'ST'};
-  const entries=Object.entries(SQUADS).filter(([c,[f,g]])=>alCurGroup==="ALL"||g===alCurGroup);
+  const entries=Object.entries(SQUADS).filter(([c,[f,g]])=>QUALIFIED_TEAMS.has(c)&&(alCurGroup==="ALL"||g===alCurGroup));
   document.getElementById("al-body").innerHTML=`
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;background:var(--glass);border:1px solid var(--bdr);border-radius:10px;padding:10px;align-items:center">
       <span style="font-size:9px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1px;width:100%;margin-bottom:2px">Position Legend</span>
