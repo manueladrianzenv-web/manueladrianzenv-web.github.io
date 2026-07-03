@@ -637,11 +637,11 @@ const PRESET=[
   // M82: 1°G vs Mejor 3° – Lumen Seattle – Jul 1 4pm ET
   {round:'16avos',f1:'🇧🇪',t1:'Bélgica',f2:'🇸🇳',t2:'Senegal',date:'2026-07-01T14:00',rg1:3,rg2:2,firstScorer:'H. Diarra',halfGoal:true,goalMinute:"25'"},
   // M83: 2°K vs 2°L – BMO Toronto – Jul 2 7pm ET
-  {round:'16avos',f1:'🇵🇹',t1:'Portugal',f2:'🇭🇷',t2:'Croacia',date:'2026-07-02T22:00'},
+  {round:'16avos',f1:'🇵🇹',t1:'Portugal',f2:'🇭🇷',t2:'Croacia',date:'2026-07-02T22:00',rg1:2,rg2:1,firstScorer:'I. Perisic',halfGoal:false,goalMinute:"53'"},
   // M84: 1°H vs 2°J – SoFi LA – Jul 2 3pm ET
-  {round:'16avos',f1:'🇪🇸',t1:'España',f2:'🇦🇹',t2:'Austria',date:'2026-07-02T14:00'},
+  {round:'16avos',f1:'🇪🇸',t1:'España',f2:'🇦🇹',t2:'Austria',date:'2026-07-02T14:00',rg1:3,rg2:0,firstScorer:'M. Oyarzabal',halfGoal:true,goalMinute:"36'"},
   // M85: 1°B vs Mejor 3° – BC Place Vancouver – Jul 2 11pm ET
-  {round:'16avos',f1:'🇨🇭',t1:'Suiza',f2:'🇩🇿',t2:'Argelia',date:'2026-07-02T22:00'},
+  {round:'16avos',f1:'🇨🇭',t1:'Suiza',f2:'🇩🇿',t2:'Argelia',date:'2026-07-02T22:00',rg1:2,rg2:0,firstScorer:'B. Embolo',halfGoal:true,goalMinute:"10'"},
   // M86: 1°J vs 2°H – Hard Rock Miami – Jul 3 6pm ET
   {round:'16avos',f1:'🇦🇷',t1:'Argentina',f2:'🇨🇻',t2:'Cabo Verde',date:'2026-07-03T20:00'},
   // M87: 1°K vs Mejor 3° – Arrowhead KC – Jul 3 9:30pm ET
@@ -702,11 +702,11 @@ const GOLES_INIT=[
   {name:'Harry Kane',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:5},
   {name:'Julián Quiñones',team:'México',flag:'🇲🇽',goals:3},
   {name:'Cody Gakpo',team:'Países Bajos',flag:'🇳🇱',goals:3},
-  {name:'Cristiano Ronaldo',team:'Portugal',flag:'🇵🇹',goals:2},
+  {name:'Cristiano Ronaldo',team:'Portugal',flag:'🇵🇹',goals:3},
   {name:'Folarin Balogun',team:'USA',flag:'🇺🇸',goals:3},
   {name:'M. Tillman',team:'USA',flag:'🇺🇸',goals:1},
   {name:'Leandro Trossard',team:'Bélgica',flag:'🇧🇪',goals:2},
-  {name:'Mikel Oyarzabal',team:'España',flag:'🇪🇸',goals:2},
+  {name:'Mikel Oyarzabal',team:'España',flag:'🇪🇸',goals:4},
   {name:'Jude Bellingham',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:2},
   {name:'Ayase Ueda',team:'Japón',flag:'🇯🇵',goals:2},
   {name:'K. Barcola',team:'Francia',flag:'🇫🇷',goals:1},
@@ -721,6 +721,11 @@ const GOLES_INIT=[
   {name:'H. Diarra',team:'Senegal',flag:'🇸🇳',goals:2},
   {name:'R. Lukaku',team:'Bélgica',flag:'🇧🇪',goals:2},
   {name:'Y. Tielemans',team:'Bélgica',flag:'🇧🇪',goals:2},
+  {name:'P. Porro',team:'España',flag:'🇪🇸',goals:1},
+  {name:'G. Ramos',team:'Portugal',flag:'🇵🇹',goals:1},
+  {name:'I. Perisic',team:'Croacia',flag:'🇭🇷',goals:1},
+  {name:'B. Embolo',team:'Suiza',flag:'🇨🇭',goals:1},
+  {name:'D. Ndoye',team:'Suiza',flag:'🇨🇭',goals:1},
 ];
 const GOLES_V=4;
 function loadG(){
