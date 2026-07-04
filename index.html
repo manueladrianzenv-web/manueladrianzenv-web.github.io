@@ -643,11 +643,11 @@ const PRESET=[
   // M85: 1°B vs Mejor 3° – BC Place Vancouver – Jul 2 11pm ET
   {round:'16avos',f1:'🇨🇭',t1:'Suiza',f2:'🇩🇿',t2:'Argelia',date:'2026-07-02T22:00',rg1:2,rg2:0,firstScorer:'B. Embolo',halfGoal:true,goalMinute:"10'"},
   // M86: 1°J vs 2°H – Hard Rock Miami – Jul 3 6pm ET
-  {round:'16avos',f1:'🇦🇷',t1:'Argentina',f2:'🇨🇻',t2:'Cabo Verde',date:'2026-07-03T20:00'},
+  {round:'16avos',f1:'🇦🇷',t1:'Argentina',f2:'🇨🇻',t2:'Cabo Verde',date:'2026-07-03T20:00',rg1:3,rg2:2,firstScorer:'L. Messi',halfGoal:true,goalMinute:"29'"},
   // M87: 1°K vs Mejor 3° – Arrowhead KC – Jul 3 9:30pm ET
-  {round:'16avos',f1:'🇨🇴',t1:'Colombia',f2:'🇬🇭',t2:'Ghana',date:'2026-07-03T22:30'},
+  {round:'16avos',f1:'🇨🇴',t1:'Colombia',f2:'🇬🇭',t2:'Ghana',date:'2026-07-03T22:30',rg1:1,rg2:0,firstScorer:'J. Arias',halfGoal:true,goalMinute:"14'"},
   // M88: 2°D vs 2°G – AT&T Dallas – Jul 3 2pm ET
-  {round:'16avos',f1:'🇦🇺',t1:'Australia',f2:'🇪🇬',t2:'Egipto',date:'2026-07-03T15:00'},
+  {round:'16avos',f1:'🇦🇺',t1:'Australia',f2:'🇪🇬',t2:'Egipto',date:'2026-07-03T15:00',rg1:1,rg2:1,pen:'team2',firstScorer:'E. Ashour',halfGoal:true,goalMinute:"13'"},
   // ═══ OCTAVOS DE FINAL (p88-p95) ═══
   // M89: G.M74 vs G.M77
   {round:'octavos',f1:'🏆',t1:'G. 16avos M74',f2:'🏆',t2:'G. 16avos M77',date:'2026-07-05T23:00'},
@@ -687,7 +687,7 @@ const PRESET=[
 let G={p:[],m:[],preds:{},prizes:{p1:'',p2:'',p3:'',p4:''},goles:[]};
 let aOpen=false,curRnd='grupos',resPen=null,resHalf=null,me=null,selEmoji='⚽',tickers=[],refreshT=null;
 const GOLES_INIT=[
-  {name:'Lionel Messi',team:'Argentina',flag:'🇦🇷',goals:6},
+  {name:'Lionel Messi',team:'Argentina',flag:'🇦🇷',goals:7},
   {name:'Kylian Mbappé',team:'Francia',flag:'🇫🇷',goals:6},
   {name:'Ousmane Dembélé',team:'Francia',flag:'🇫🇷',goals:4},
   {name:'Erling Haaland',team:'Noruega',flag:'🇳🇴',goals:5},
@@ -721,6 +721,11 @@ const GOLES_INIT=[
   {name:'H. Diarra',team:'Senegal',flag:'🇸🇳',goals:2},
   {name:'R. Lukaku',team:'Bélgica',flag:'🇧🇪',goals:2},
   {name:'Y. Tielemans',team:'Bélgica',flag:'🇧🇪',goals:2},
+  {name:'E. Ashour',team:'Egipto',flag:'🇪🇬',goals:1},
+  {name:'L. Martínez',team:'Argentina',flag:'🇦🇷',goals:1},
+  {name:'D. Duarte',team:'Cabo Verde',flag:'🇨🇻',goals:1},
+  {name:'S. Cabral',team:'Cabo Verde',flag:'🇨🇻',goals:1},
+  {name:'J. Arias',team:'Colombia',flag:'🇨🇴',goals:1},
   {name:'P. Porro',team:'España',flag:'🇪🇸',goals:1},
   {name:'G. Ramos',team:'Portugal',flag:'🇵🇹',goals:1},
   {name:'I. Perisic',team:'Croacia',flag:'🇭🇷',goals:1},
