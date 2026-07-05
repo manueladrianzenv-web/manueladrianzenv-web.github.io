@@ -650,9 +650,9 @@ const PRESET=[
   {round:'16avos',f1:'🇦🇺',t1:'Australia',f2:'🇪🇬',t2:'Egipto',date:'2026-07-03T15:00',rg1:1,rg2:1,pen:'team2',firstScorer:'E. Ashour',halfGoal:true,goalMinute:"13'"},
   // ═══ OCTAVOS DE FINAL (p88-p95) ═══
   // M89: PAR vs FRA – Lincoln Financial Philadelphia – Jul 4 5pm ET
-  {round:'octavos',f1:'🇵🇾',t1:'Paraguay',f2:'🇫🇷',t2:'Francia',date:'2026-07-04T17:00'},
+  {round:'octavos',f1:'🇵🇾',t1:'Paraguay',f2:'🇫🇷',t2:'Francia',date:'2026-07-04T17:00',rg1:0,rg2:1,firstScorer:'K. Mbappé',halfGoal:false,goalMinute:"70' pen"},
   // M90: CAN vs MAR – NRG Houston – Jul 4 1pm ET
-  {round:'octavos',f1:'🇨🇦',t1:'Canadá',f2:'🇲🇦',t2:'Marruecos',date:'2026-07-04T13:00'},
+  {round:'octavos',f1:'🇨🇦',t1:'Canadá',f2:'🇲🇦',t2:'Marruecos',date:'2026-07-04T13:00',rg1:0,rg2:3,firstScorer:'A. Ounahi',halfGoal:false,goalMinute:"50'"},
   // M91: BRA vs NOR – MetLife NY – Jul 5 4pm ET
   {round:'octavos',f1:'🇧🇷',t1:'Brasil',f2:'🇳🇴',t2:'Noruega',date:'2026-07-05T16:00'},
   // M92: MEX vs ING – Estadio Azteca CDMX – Jul 5 8pm ET
@@ -688,7 +688,7 @@ let G={p:[],m:[],preds:{},prizes:{p1:'',p2:'',p3:'',p4:''},goles:[]};
 let aOpen=false,curRnd='grupos',resPen=null,resHalf=null,me=null,selEmoji='⚽',tickers=[],refreshT=null;
 const GOLES_INIT=[
   {name:'Lionel Messi',team:'Argentina',flag:'🇦🇷',goals:7},
-  {name:'Kylian Mbappé',team:'Francia',flag:'🇫🇷',goals:6},
+  {name:'Kylian Mbappé',team:'Francia',flag:'🇫🇷',goals:7},
   {name:'Ousmane Dembélé',team:'Francia',flag:'🇫🇷',goals:4},
   {name:'Erling Haaland',team:'Noruega',flag:'🇳🇴',goals:5},
   {name:'Vinicius Jr.',team:'Brasil',flag:'🇧🇷',goals:4},
@@ -697,6 +697,7 @@ const GOLES_INIT=[
   {name:'Johan Manzambi',team:'Suiza',flag:'🇨🇭',goals:3},
   {name:'Matheus Cunha',team:'Brasil',flag:'🇧🇷',goals:3},
   {name:'Ismael Saibari',team:'Marruecos',flag:'🇲🇦',goals:3},
+  {name:'A. Ounahi',team:'Marruecos',flag:'🇲🇦',goals:2},
   {name:'Brian Brobbey',team:'Países Bajos',flag:'🇳🇱',goals:3},
   {name:'Ismaila Sarr',team:'Senegal',flag:'🇸🇳',goals:4},
   {name:'Harry Kane',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:5},
@@ -731,6 +732,7 @@ const GOLES_INIT=[
   {name:'I. Perisic',team:'Croacia',flag:'🇭🇷',goals:1},
   {name:'B. Embolo',team:'Suiza',flag:'🇨🇭',goals:1},
   {name:'D. Ndoye',team:'Suiza',flag:'🇨🇭',goals:1},
+  {name:'S. Rahimi',team:'Marruecos',flag:'🇲🇦',goals:1},
 ];
 const GOLES_V=4;
 function loadG(){
