@@ -654,9 +654,9 @@ const PRESET=[
   // M90: CAN vs MAR – NRG Houston – Jul 4 1pm ET
   {round:'octavos',f1:'🇨🇦',t1:'Canadá',f2:'🇲🇦',t2:'Marruecos',date:'2026-07-04T13:00',rg1:0,rg2:3,firstScorer:'A. Ounahi',halfGoal:false,goalMinute:"50'"},
   // M91: BRA vs NOR – MetLife NY – Jul 5 4pm ET
-  {round:'octavos',f1:'🇧🇷',t1:'Brasil',f2:'🇳🇴',t2:'Noruega',date:'2026-07-05T16:00'},
+  {round:'octavos',f1:'🇧🇷',t1:'Brasil',f2:'🇳🇴',t2:'Noruega',date:'2026-07-05T16:00',rg1:1,rg2:2,firstScorer:'E. Haaland',halfGoal:false,goalMinute:"79'"},
   // M92: MEX vs ING – Estadio Azteca CDMX – Jul 5 8pm ET
-  {round:'octavos',f1:'🇲🇽',t1:'México',f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',t2:'Inglaterra',date:'2026-07-05T20:00'},
+  {round:'octavos',f1:'🇲🇽',t1:'México',f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',t2:'Inglaterra',date:'2026-07-05T20:00',rg1:2,rg2:3,firstScorer:'J. Bellingham',halfGoal:true,goalMinute:"36'"},
   // M93: POR vs ESP – AT&T Dallas – Jul 6 3pm ET
   {round:'octavos',f1:'🇵🇹',t1:'Portugal',f2:'🇪🇸',t2:'España',date:'2026-07-06T15:00'},
   // M94: USA vs BEL – Lumen Field Seattle – Jul 6 8pm ET
@@ -690,7 +690,7 @@ const GOLES_INIT=[
   {name:'Lionel Messi',team:'Argentina',flag:'🇦🇷',goals:7},
   {name:'Kylian Mbappé',team:'Francia',flag:'🇫🇷',goals:7},
   {name:'Ousmane Dembélé',team:'Francia',flag:'🇫🇷',goals:4},
-  {name:'Erling Haaland',team:'Noruega',flag:'🇳🇴',goals:5},
+  {name:'Erling Haaland',team:'Noruega',flag:'🇳🇴',goals:7},
   {name:'Vinicius Jr.',team:'Brasil',flag:'🇧🇷',goals:4},
   {name:'Jonathan David',team:'Canadá',flag:'🇨🇦',goals:3},
   {name:'Deniz Undav',team:'Alemania',flag:'🇩🇪',goals:3},
@@ -700,19 +700,19 @@ const GOLES_INIT=[
   {name:'A. Ounahi',team:'Marruecos',flag:'🇲🇦',goals:2},
   {name:'Brian Brobbey',team:'Países Bajos',flag:'🇳🇱',goals:3},
   {name:'Ismaila Sarr',team:'Senegal',flag:'🇸🇳',goals:4},
-  {name:'Harry Kane',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:5},
-  {name:'Julián Quiñones',team:'México',flag:'🇲🇽',goals:3},
+  {name:'Harry Kane',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:6},
+  {name:'Julián Quiñones',team:'México',flag:'🇲🇽',goals:4},
   {name:'Cody Gakpo',team:'Países Bajos',flag:'🇳🇱',goals:3},
   {name:'Cristiano Ronaldo',team:'Portugal',flag:'🇵🇹',goals:3},
   {name:'Folarin Balogun',team:'USA',flag:'🇺🇸',goals:3},
   {name:'M. Tillman',team:'USA',flag:'🇺🇸',goals:1},
   {name:'Leandro Trossard',team:'Bélgica',flag:'🇧🇪',goals:2},
   {name:'Mikel Oyarzabal',team:'España',flag:'🇪🇸',goals:4},
-  {name:'Jude Bellingham',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:2},
+  {name:'Jude Bellingham',team:'Inglaterra',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',goals:4},
   {name:'Ayase Ueda',team:'Japón',flag:'🇯🇵',goals:2},
   {name:'K. Barcola',team:'Francia',flag:'🇫🇷',goals:1},
   {name:'A. Nusa',team:'Noruega',flag:'🇳🇴',goals:1},
-  {name:'R. Jiménez',team:'México',flag:'🇲🇽',goals:1},
+  {name:'R. Jiménez',team:'México',flag:'🇲🇽',goals:2},
   {name:'I. Diop',team:'Marruecos',flag:'🇲🇦',goals:1},
   {name:'J. Enciso',team:'Paraguay',flag:'🇵🇾',goals:1},
   {name:'K. Sano',team:'Japón',flag:'🇯🇵',goals:1},
@@ -733,6 +733,7 @@ const GOLES_INIT=[
   {name:'B. Embolo',team:'Suiza',flag:'🇨🇭',goals:1},
   {name:'D. Ndoye',team:'Suiza',flag:'🇨🇭',goals:1},
   {name:'S. Rahimi',team:'Marruecos',flag:'🇲🇦',goals:1},
+  {name:'Neymar Jr.',team:'Brasil',flag:'🇧🇷',goals:1},
 ];
 const GOLES_V=4;
 function loadG(){
